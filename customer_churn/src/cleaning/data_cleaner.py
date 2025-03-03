@@ -11,7 +11,7 @@ class DataCleaner:
     """Handles general data cleaning while delegating categorical processing to CategoricalProcessor."""
 
     def __init__(
-        self, csv_file, cleaner_config_json_file=None, categorical_processor=None
+        self, csv_file=None, cleaner_config_json_file=None, categorical_processor=None
     ):
         """
         Initializes the DataCleaner.
@@ -42,7 +42,8 @@ class DataCleaner:
         self, drop_columns=None, fill_strategy=None, fill_value=None, remove_empty=True
     ):
         """Performs general cleaning and delegates categorical processing."""
-        self._load_data()
+        if self.df is None:
+            self._load_data()
         self._drop_unnamed_first_column()
         self._drop_columns(drop_columns)
         self._rename_columns()

@@ -3,6 +3,8 @@ import pandas as pd
 from unittest.mock import Mock
 from cleaning.data_cleaner import DataCleaner
 from cleaning.categorical_processor import CategoricalProcessor
+import tempfile
+import os
 
 
 @pytest.fixture
@@ -24,6 +26,8 @@ def setup_data_cleaner():
 
     # Mocking the CategoricalProcessor to prevent actual encoding logic from interfering with tests
     mock_categorical_processor = Mock(spec=CategoricalProcessor)
+    mock_categorical_processor.replace_column_values.side_effect = lambda df: df
+    mock_categorical_processor.encode_categorical.side_effect = lambda df: df
 
     # Initializing DataCleaner without a real CSV file (we manually assign the DataFrame)
     cleaner = DataCleaner(
@@ -37,14 +41,14 @@ def setup_data_cleaner():
 def test_drop_unnamed_first_column(setup_data_cleaner):
     """Test if unnamed first column is removed."""
     cleaner = setup_data_cleaner
-    cleaner.drop_unnamed_first_column()
+    cleaner._drop_unnamed_first_column()
     assert "Unnamed: 0" not in cleaner.df.columns
 
 
 def test_drop_columns(setup_data_cleaner):
     """Test if specified columns are correctly dropped."""
     cleaner = setup_data_cleaner
-    cleaner.drop_columns(["CLIENTNUM"])
+    cleaner._drop_columns(["CLIENTNUM"])
     assert "CLIENTNUM" not in cleaner.df.columns
 
 
@@ -52,7 +56,7 @@ def test_rename_columns(setup_data_cleaner):
     """Test if columns are correctly renamed based on mapping."""
     cleaner = setup_data_cleaner
     cleaner.column_mapping = {"attrition_status": "customer_status", "gender": "sex"}
-    cleaner.rename_columns()
+    cleaner._rename_columns()
     assert "customer_status" in cleaner.df.columns
     assert "sex" in cleaner.df.columns
     assert "attrition_status" not in cleaner.df.columns
@@ -62,21 +66,21 @@ def test_rename_columns(setup_data_cleaner):
 def test_fill_missing_values_mean(setup_data_cleaner):
     """Test if missing values are filled using the mean strategy."""
     cleaner = setup_data_cleaner
-    cleaner.fill_missing_values(strategy="mean")
+    cleaner._fill_missing_values(strategy="mean")
     assert not cleaner.df["missing_values"].isna().any()
 
 
 def test_fill_missing_values_median(setup_data_cleaner):
     """Test if missing values are filled using the median strategy."""
     cleaner = setup_data_cleaner
-    cleaner.fill_missing_values(strategy="median")
+    cleaner._fill_missing_values(strategy="median")
     assert not cleaner.df["missing_values"].isna().any()
 
 
 def test_fill_missing_values_constant(setup_data_cleaner):
     """Test if missing values are filled with a constant value."""
     cleaner = setup_data_cleaner
-    cleaner.fill_missing_values(strategy="constant", fill_value=0)
+    cleaner._fill_missing_values(strategy="constant", fill_value=0)
     assert not cleaner.df["missing_values"].isna().any()
     assert cleaner.df["missing_values"].iloc[1] == 0
 
@@ -86,7 +90,7 @@ def test_remove_empty_rows(setup_data_cleaner):
     cleaner = setup_data_cleaner
     cleaner.df.loc[3] = [None] * len(cleaner.df.columns)  # Adding an empty row
     num_rows_before = len(cleaner.df)
-    cleaner.remove_empty_rows()
+    cleaner._remove_empty_rows()
     assert len(cleaner.df) == num_rows_before - 1
 
 
@@ -94,7 +98,7 @@ def test_log_dataset_info(setup_data_cleaner):
     """Test if dataset logging runs without errors."""
     cleaner = setup_data_cleaner
     try:
-        cleaner.log_dataset_info()
+        cleaner._log_dataset_info()
     except Exception as e:
         pytest.fail(f"log_dataset_info() raised an unexpected exception: {e}")
 
@@ -131,7 +135,11 @@ def test_clean_data_integrity(setup_data_cleaner):
 def test_save_data(setup_data_cleaner):
     """Test if `save_data` runs without errors."""
     cleaner = setup_data_cleaner
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file_path = tmp_file.name  # Store the file path
     try:
-        cleaner.save_data("test_output.csv")
+        cleaner.save_data(tmp_file_path)
     except Exception as e:
         pytest.fail(f"save_data() raised an unexpected exception: {e}")
+    finally:
+        os.remove(tmp_file_path)
