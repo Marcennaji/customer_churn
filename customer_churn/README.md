@@ -3,7 +3,9 @@
 - Project **Predict Customer Churn** of ML DevOps Engineer Nanodegree Udacity
 
 ## Project Description
-Your project description here.
+1st project, focused on "clean code" practices : design, naming, logging, error handling, etc.
+
+** WORK IN PROGRESS **
 
 ## Requirements
 Tested only with Python 3.10.11. 
@@ -14,10 +16,10 @@ pip install -r .\requirements_py3.10.txt
 ```
 
 ## Files and data description
-Overview of the files and data present in the root directory. 
+TODO
 
 ## Running Files
-How do you run your files? What should happen when you run your files?
+TODO
 
 
 
