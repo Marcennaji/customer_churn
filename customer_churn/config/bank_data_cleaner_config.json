@@ -23,7 +23,7 @@
         "Avg_Utilization_Ratio": "credit_utilization_ratio"
     },
     "column_values": {
-        "Attrition_Flag": {
+        "attrition_status": {
             "Existing Customer": "active",
             "Attrited Customer": "inactive"
         }

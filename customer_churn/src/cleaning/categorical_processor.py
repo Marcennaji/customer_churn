@@ -22,7 +22,7 @@ class CategoricalProcessor:
         if not df.empty and self.value_replacements:
             for column, replacements in self.value_replacements.items():
                 if column in df.columns:
-                    df[column].replace(replacements, inplace=True)
+                    df[column] = df[column].replace(replacements)
                     logging.info(
                         f"Replaced values in column '{column}': {replacements}"
                     )

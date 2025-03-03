@@ -12,7 +12,11 @@ class OrdinalEncoderWrapper(EncoderBase):
 
     def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
         if column in df.columns:
-            encoder = OrdinalEncoder(categories=[self.categories])
+            encoder = OrdinalEncoder(
+                categories=[self.categories],
+                handle_unknown="use_encoded_value",
+                unknown_value=-1,
+            )
             df[column] = encoder.fit_transform(df[[column]])
             logging.info(
                 f"Applied Ordinal Encoding to '{column}' with categories: {self.categories}."

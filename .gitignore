@@ -172,3 +172,15 @@ cython_debug/
 
 # vscode config
 .vscode/
+📅 Plan de travail MLOps (Mars - Juillet.md
+test_output.csv
+customer_churn/.tempfile
+customer_churn/.workspace-config.json
+customer_churn/notebook_new.py
+customer_churn/notebook_original.py
+customer_churn/requirements_py3.6.txt
+customer_churn/requirements_py3.8.txt
+customer_churn/data/bank_data_cleaned.csv
+customer_churn/data/cleaned_dataset.csv
+customer_churn/models/logistic_model.pkl
+customer_churn/models/rfc_model.pkl

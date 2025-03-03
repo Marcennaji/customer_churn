@@ -9,7 +9,7 @@ class OneHotEncoderWrapper(EncoderBase):
 
     def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
         if column in df.columns:
-            encoder = OneHotEncoder(sparse=False, drop="first")
+            encoder = OneHotEncoder(sparse_output=False, drop="first")
             encoded_data = encoder.fit_transform(df[[column]])
             encoded_df = pd.DataFrame(
                 encoded_data, columns=encoder.get_feature_names_out([column])
