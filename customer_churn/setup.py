@@ -7,7 +7,7 @@ setup(
     package_dir={"": "src"},
     entry_points={
         "console_scripts": [
-            "data_cleaner=cleaning.data_cleaner:main",
+            "churn_library=churn_library:main",
         ],
     },
 )

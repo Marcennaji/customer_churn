@@ -1,110 +1,59 @@
-# library doc string
-
-
-# import libraries
+from data_processing.data_cleaner import DataCleaner
+from data_processing.data_explorer import DataExplorer
+from data_processing.data_encoder import DataEncoder
+from config_loader import load_config
+import pandas as pd
 import os
-os.environ['QT_QPA_PLATFORM']='offscreen'
-
 
 
 def import_data(pth):
-    '''
-    returns dataframe for the csv found at pth
-
-    input:
-            pth: a path to the csv
-    output:
-            df: pandas dataframe
-    '''	
-    pass
+    """Loads CSV into a DataFrame without modifications."""
+    return pd.read_csv(pth)
 
 
 def perform_eda(df):
-    '''
-    perform eda on df and save figures to images folder
-    input:
-            df: pandas dataframe
-
-    output:
-            None
-    '''
-    pass
+    """Performs exploratory data analysis on cleaned data."""
+    explorer = DataExplorer()
+    explorer.perform_eda(df)
 
 
 def encoder_helper(df, category_lst, response):
-    '''
-    helper function to turn each categorical column into a new column with
-    proportion of churn for each category - associated with cell 15 from the notebook
-
-    input:
-            df: pandas dataframe
-            category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could be used for naming variables or index y column]
-
-    output:
-            df: pandas dataframe with new columns for
-    '''
-    pass
+    """Encodes categorical features based on target variable proportions."""
+    # encoder = EncoderHelper()
+    # return encoder.encode(df, category_lst, response)
 
 
-def perform_feature_engineering(df, response):
-    '''
-    input:
-              df: pandas dataframe
-              response: string of response name [optional argument that could be used for naming variables or index y column]
+def main():
+    """Main pipeline to process data and apply transformations."""
 
-    output:
-              X_train: X training data
-              X_test: X testing data
-              y_train: y training data
-              y_test: y testing data
-    '''
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(script_dir, "../config/config.json")
+    config = load_config(config_path)
 
-def classification_report_image(y_train,
-                                y_test,
-                                y_train_preds_lr,
-                                y_train_preds_rf,
-                                y_test_preds_lr,
-                                y_test_preds_rf):
-    '''
-    produces classification report for training and testing results and stores report as image
-    in images folder
-    input:
-            y_train: training response values
-            y_test:  test response values
-            y_train_preds_lr: training predictions from logistic regression
-            y_train_preds_rf: training predictions from random forest
-            y_test_preds_lr: test predictions from logistic regression
-            y_test_preds_rf: test predictions from random forest
+    csv_file_path = os.path.join(script_dir, config.get("data").get("raw_data_path"))
+    processed_csv_file_path = os.path.join(
+        script_dir, config.get("data").get("processed_data_path")
+    )
 
-    output:
-             None
-    '''
-    pass
+    cleaner_json_file_path = os.path.join(script_dir, config.get("cleaner_config_path"))
+    encoder_json_file_path = os.path.join(script_dir, config.get("encoder_config_path"))
+
+    # Load raw data
+    df_raw = import_data(csv_file_path)
+
+    # Clean data : rename columns, drop columns, fill missing values, remove empty rows, replace categorical values
+    cleaner = DataCleaner(config_json_file=cleaner_json_file_path)
+    df_cleaned = cleaner.clean_data(
+        df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
+    )
+
+    # encode categorical features
+    encoder = DataEncoder(config_json_file=encoder_json_file_path)
+    df_encoded = encoder.encode(df_cleaned)
+
+    # 4️⃣ Save the processed dataset
+    df_encoded.to_csv(processed_csv_file_path, index=False)
 
 
-def feature_importance_plot(model, X_data, output_pth):
-    '''
-    creates and stores the feature importances in pth
-    input:
-            model: model object containing feature_importances_
-            X_data: pandas dataframe of X values
-            output_pth: path to store the figure
-
-    output:
-             None
-    '''
-    pass
-
-def train_models(X_train, X_test, y_train, y_test):
-    '''
-    train, store model results: images + scores, and store models
-    input:
-              X_train: X training data
-              X_test: X testing data
-              y_train: y training data
-              y_test: y testing data
-    output:
-              None
-    '''
-    pass
+if __name__ == "__main__":
+    main()

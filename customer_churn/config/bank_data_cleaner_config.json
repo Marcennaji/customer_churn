@@ -1,7 +1,7 @@
 {
     "column_names": {
         "CLIENTNUM": "client_id",
-        "Attrition_Flag": "attrition_status",
+        "Attrition_Flag": "churn",
         "Customer_Age": "age",
         "Gender": "gender",
         "Dependent_count": "num_dependents",
@@ -23,36 +23,9 @@
         "Avg_Utilization_Ratio": "credit_utilization_ratio"
     },
     "column_values": {
-        "attrition_status": {
-            "Existing Customer": "active",
-            "Attrited Customer": "inactive"
-        }
-    },
-    "encoding": {
-        "attrition_status": {
-            "method": "label"
-        },
-        "gender": {
-            "method": "label"
-        },
-        "education": {
-            "method": "one-hot"
-        },
-        "marital_status": {
-            "method": "one-hot"
-        },
-        "income_bracket": {
-            "method": "ordinal",
-            "categories": [
-                "Less than $40K",
-                "$40K - $60K",
-                "$60K - $80K",
-                "$80K - $120K",
-                "$120K +"
-            ]
-        },
-        "card_type": {
-            "method": "one-hot"
+        "churn": {
+            "Existing Customer": 0,
+            "Attrited Customer": 1
         }
     }
 }
