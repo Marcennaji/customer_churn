@@ -4,8 +4,7 @@ from config_loader import load_config
 from data_processing.label_encoder import LabelEncoderWrapper
 from data_processing.one_hot_encoder import OneHotEncoderWrapper
 from data_processing.ordinal_encoder import OrdinalEncoderWrapper
-import os
-import argparse
+from common.utils import check_args_paths
 
 
 class DataEncoder:
@@ -37,13 +36,13 @@ class DataEncoder:
                 encoder = OneHotEncoderWrapper()
             elif method == "ordinal":
                 if not categories:
-                    logging.warning(
+                    logger.warning(
                         f"No categories specified for ordinal encoding in column '{column}'. Skipping encoding."
                     )
                     continue
                 encoder = OrdinalEncoderWrapper(categories)
             else:
-                logging.warning(
+                logger.warning(
                     f"Unknown encoding method '{method}' for column '{column}'. Skipping encoding."
                 )
                 continue
@@ -52,47 +51,15 @@ class DataEncoder:
         return df
 
 
-def check_paths():
-    parser = argparse.ArgumentParser(description="Clean a dataset using DataEncoder.")
-    parser.add_argument(
-        "--config",
-        type=str,
-        required=True,
-        help="Path to the encoder JSON configuration file.",
-    )
-    parser.add_argument(
-        "--csv", type=str, required=True, help="Path to the input dataset CSV file."
-    )
-    parser.add_argument(
-        "--result",
-        type=str,
-        required=True,
-        help="Path to save the encoded dataset CSV file.",
-    )
-    args = parser.parse_args()
-
-    # Check if config file exists
-    if not os.path.isfile(args.config):
-        raise FileNotFoundError(f"Config file not found: {args.config}")
-
-    # Check if CSV file exists
-    if not os.path.isfile(args.csv):
-        raise FileNotFoundError(f"CSV file not found: {args.csv}")
-
-    # Check if the directory of the result file exists
-    result_dir = os.path.dirname(args.result)
-    if not os.path.isdir(result_dir):
-        raise FileNotFoundError(
-            f"Directory for result file does not exist: {result_dir}"
-        )
-
-    return args.config, args.csv, args.result
-
-
 def main():
 
     try:
-        config_path, csv_path, result_path = check_paths()
+        config_path, csv_path, result_path = check_args_paths(
+            description="Encode a dataset using DataCleaner.",
+            config_help="Path to the encoder JSON configuration file.",
+            csv_help="Path to the input dataset CSV file.",
+            result_help="Path to save the encoded dataset CSV file.",
+        )
     except FileNotFoundError as e:
         logger.error(e)
         print(e)

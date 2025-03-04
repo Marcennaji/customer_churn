@@ -1,8 +1,7 @@
 from logger_config import logger
 from config_loader import load_config
 import pandas as pd
-import argparse
-import os
+from common.utils import check_args_paths
 
 
 class DataCleaner:
@@ -88,32 +87,40 @@ class DataCleaner:
             numerical_cols = df.select_dtypes(include=["number"]).columns
 
             if strategy == "mean":
-                df[numerical_cols] = df[numerical_cols].fillna(
-                    df[numerical_cols].mean()
-                )
-                logger.info("Filled missing numerical values using mean.")
+                self._fill_mean(df, numerical_cols)
             elif strategy == "median":
-                df[numerical_cols] = df[numerical_cols].fillna(
-                    df[numerical_cols].median()
-                )
-                logger.info("Filled missing numerical values using median.")
+                self._fill_median(df, numerical_cols)
             elif strategy == "mode":
-                mode_values = (
-                    df[numerical_cols].dropna().mode().iloc[0]
-                    if not df[numerical_cols].mode().empty
-                    else None
-                )
-                df[numerical_cols] = df[numerical_cols].fillna(mode_values)
-                logger.info("Filled missing numerical values using mode.")
+                self._fill_mode(df, numerical_cols)
             elif strategy == "constant":
-                if fill_value is None:
-                    raise ValueError("fill_value is required when strategy='constant'.")
-                df.fillna(fill_value, inplace=True)
-                logger.info(f"Filled missing values with constant value: {fill_value}")
+                self._fill_constant(df, fill_value)
             else:
                 raise ValueError(
                     f"Invalid fill strategy '{strategy}'. Choose from 'mean', 'median', 'mode', or 'constant'."
                 )
+
+    def _fill_mean(self, df, numerical_cols):
+        df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].mean())
+        logger.info("Filled missing numerical values using mean.")
+
+    def _fill_median(self, df, numerical_cols):
+        df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].median())
+        logger.info("Filled missing numerical values using median.")
+
+    def _fill_mode(self, df, numerical_cols):
+        mode_values = (
+            df[numerical_cols].dropna().mode().iloc[0]
+            if not df[numerical_cols].mode().empty
+            else None
+        )
+        df[numerical_cols] = df[numerical_cols].fillna(mode_values)
+        logger.info("Filled missing numerical values using mode.")
+
+    def _fill_constant(self, df, fill_value):
+        if fill_value is None:
+            raise ValueError("fill_value is required when strategy='constant'.")
+        df.fillna(fill_value, inplace=True)
+        logger.info(f"Filled missing values with constant value: {fill_value}")
 
     def _replace_categorical_values(self, df):
         """Replaces categorical values in the dataset based on predefined mappings."""
@@ -163,47 +170,15 @@ class DataCleaner:
         return [col for col in columns if col in df.columns]
 
 
-def check_paths():
-    parser = argparse.ArgumentParser(description="Clean a dataset using DataCleaner.")
-    parser.add_argument(
-        "--config",
-        type=str,
-        required=True,
-        help="Path to the cleaner JSON configuration file.",
-    )
-    parser.add_argument(
-        "--csv", type=str, required=True, help="Path to the input dataset CSV file."
-    )
-    parser.add_argument(
-        "--result",
-        type=str,
-        required=True,
-        help="Path to save the cleaned dataset CSV file.",
-    )
-    args = parser.parse_args()
-
-    # Check if config file exists
-    if not os.path.isfile(args.config):
-        raise FileNotFoundError(f"Config file not found: {args.config}")
-
-    # Check if CSV file exists
-    if not os.path.isfile(args.csv):
-        raise FileNotFoundError(f"CSV file not found: {args.csv}")
-
-    # Check if the directory of the result file exists
-    result_dir = os.path.dirname(args.result)
-    if not os.path.isdir(result_dir):
-        raise FileNotFoundError(
-            f"Directory for result file does not exist: {result_dir}"
-        )
-
-    return args.config, args.csv, args.result
-
-
 def main():
 
     try:
-        config_path, csv_path, result_path = check_paths()
+        config_path, csv_path, result_path = check_args_paths(
+            description="Clean a dataset using DataCleaner.",
+            config_help="Path to the cleaner JSON configuration file.",
+            csv_help="Path to the input dataset CSV file.",
+            result_help="Path to save the cleaned dataset CSV file.",
+        )
     except FileNotFoundError as e:
         logger.error(e)
         print(e)
