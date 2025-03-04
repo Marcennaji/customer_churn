@@ -1,12 +1,11 @@
-import logging
+from logger_config import logger
 import pandas as pd
 from config_loader import load_config
 from data_processing.label_encoder import LabelEncoderWrapper
 from data_processing.one_hot_encoder import OneHotEncoderWrapper
 from data_processing.ordinal_encoder import OrdinalEncoderWrapper
-
-
-logger = logging.getLogger("DataEncoder")
+import os
+import argparse
 
 
 class DataEncoder:
@@ -51,3 +50,60 @@ class DataEncoder:
 
             df = encoder.encode(df, column)
         return df
+
+
+def check_paths():
+    parser = argparse.ArgumentParser(description="Clean a dataset using DataEncoder.")
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to the encoder JSON configuration file.",
+    )
+    parser.add_argument(
+        "--csv", type=str, required=True, help="Path to the input dataset CSV file."
+    )
+    parser.add_argument(
+        "--result",
+        type=str,
+        required=True,
+        help="Path to save the encoded dataset CSV file.",
+    )
+    args = parser.parse_args()
+
+    # Check if config file exists
+    if not os.path.isfile(args.config):
+        raise FileNotFoundError(f"Config file not found: {args.config}")
+
+    # Check if CSV file exists
+    if not os.path.isfile(args.csv):
+        raise FileNotFoundError(f"CSV file not found: {args.csv}")
+
+    # Check if the directory of the result file exists
+    result_dir = os.path.dirname(args.result)
+    if not os.path.isdir(result_dir):
+        raise FileNotFoundError(
+            f"Directory for result file does not exist: {result_dir}"
+        )
+
+    return args.config, args.csv, args.result
+
+
+def main():
+
+    try:
+        config_path, csv_path, result_path = check_paths()
+    except FileNotFoundError as e:
+        logger.error(e)
+        print(e)
+        return
+
+    df = pd.read_csv(csv_path)
+    encoder = DataEncoder(config_json_file=config_path)
+    cleaned_df = encoder.encode(df)
+    cleaned_df.to_csv(result_path, index=False)
+    logger.info(f"Encoded dataset saved to {result_path}")
+
+
+if __name__ == "__main__":
+    main()

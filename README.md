@@ -1,7 +1,7 @@
 # Customer Churn Prediction (Work in Progress)
 
 ## Description
-Udacity MLOPS engineer Nanodegree.
+Udacity MLOPS engineer Nanodegree, feb. 2025.
 This project implements an MLOps pipeline for customer churn prediction. It includes data collection, preprocessing, model training, and evaluation.
 
 ## Project Architecture
@@ -69,11 +69,20 @@ Clone the repository and install dependencies:
 git clone https://github.com/Marcennaji/customer_churn.git
 cd customer_churn
 pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Usage
-See churn_library.py for an example of a complete ML pipeline.
-Execute the pipeline on a sample dataset, with:
+Command line example, for cleaning a dataset :
+```bash
+python src/data_processing/data_cleaner.py --config=config/bank_data_cleaner_config.json --csv=data/bank_data.csv --result=data/cleaned_bank_data.csv
+```
+Command line example, for encoding a dataset :
+```bash
+python src/data_processing/data_encoder.py --config=config/bank_data_encoder_original_column_names_config.json --csv=data/bank_data.csv --result=data/encoded_bank_data.csv
+```
+See the python script `churn_library.py`, for an example of a complete ML pipeline.
+For executing the ML pipeline on a sample dataset, using values set in config/config.json, run:
 ```bash
 churn_library
 ```
@@ -84,7 +93,7 @@ pytest
 ```
 
 ## Author
-- **Marc Ennaji** 
+**Marc Ennaji** 
 
 ## License
 This project is licensed under the MIT License.

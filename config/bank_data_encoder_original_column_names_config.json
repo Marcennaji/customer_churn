@@ -1,0 +1,26 @@
+{
+    "encoding": {
+        "Gender": {
+            "method": "label"
+        },
+        "Education_Level": {
+            "method": "one-hot"
+        },
+        "Marital_Status": {
+            "method": "one-hot"
+        },
+        "Income_Category": {
+            "method": "ordinal",
+            "categories": [
+                "Less than $40K",
+                "$40K - $60K",
+                "$60K - $80K",
+                "$80K - $120K",
+                "$120K +"
+            ]
+        },
+        "Card_Category": {
+            "method": "one-hot"
+        }
+    }
+}
