@@ -3,6 +3,5 @@
         "raw_data_path": "../data/bank_data.csv",
         "processed_data_path": "../data/bank_data_processed.csv"
     },
-    "cleaner_config_path": "../config/bank_data_cleaner_config.json",
-    "encoder_config_path": "../config/bank_data_encoder_new_column_names_config.json"
+    "preprocessing_config_path": "../config/bank_data_preprocessing_config.json"
 }

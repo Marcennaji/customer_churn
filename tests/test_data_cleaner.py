@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from data_processing.data_cleaner import DataCleaner
+from data_preprocessing.data_cleaner import DataCleaner
 import json
 
 

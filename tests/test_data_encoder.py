@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import json
-from data_processing.data_encoder import DataEncoder
+from data_preprocessing.data_encoder import DataEncoder
 
 
 @pytest.fixture

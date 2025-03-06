@@ -1,6 +1,6 @@
-from data_processing.data_cleaner import DataCleaner
-from data_processing.data_explorer import DataExplorer
-from data_processing.data_encoder import DataEncoder
+from data_preprocessing.data_cleaner import DataCleaner
+from data_preprocessing.data_explorer import DataExplorer
+from data_preprocessing.data_encoder import DataEncoder
 from config_loader import load_config
 import pandas as pd
 import os

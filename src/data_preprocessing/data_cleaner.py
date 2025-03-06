@@ -3,6 +3,8 @@ from config_loader import load_config
 import pandas as pd
 from common.utils import check_args_paths
 
+pd.set_option("future.no_silent_downcasting", True)
+
 
 class DataCleaner:
     """Handles general data cleaning operations (decoupled from encoding)."""
@@ -171,13 +173,12 @@ class DataCleaner:
 
 
 def main():
-
     try:
         config_path, csv_path, result_path = check_args_paths(
-            description="Clean a dataset using DataCleaner.",
-            config_help="Path to the cleaner JSON configuration file.",
+            description="Clean a dataset.",
+            config_help="Path to the JSON configuration file.",
             csv_help="Path to the input dataset CSV file.",
-            result_help="Path to save the cleaned dataset CSV file.",
+            result_help="Path to save the final processed dataset CSV file.",
         )
     except FileNotFoundError as e:
         logger.error(e)
@@ -185,10 +186,12 @@ def main():
         return
 
     df = pd.read_csv(csv_path)
+
     cleaner = DataCleaner(config_json_file=config_path)
     cleaned_df = cleaner.clean_data(df)
+
     cleaned_df.to_csv(result_path, index=False)
-    logger.info(f"Cleaned dataset saved to {result_path}")
+    logger.info(f"Processed dataset saved to {result_path}")
 
 
 if __name__ == "__main__":

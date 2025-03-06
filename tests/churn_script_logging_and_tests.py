@@ -30,8 +30,9 @@ def test_eda(perform_eda):
 
 def test_encoder_helper(encoder_helper):
     """
-    test encoder helper
+    Run the following command in the terminal: pytest tests/test_data_encoder.py
     """
+    pass
 
 
 def test_perform_feature_engineering(perform_feature_engineering):
