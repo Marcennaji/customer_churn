@@ -58,17 +58,22 @@ class DataEncoder:
 
         mean_encoding = df.groupby(column)[target_column].mean().to_dict()
         df[f"{column}_{target_column}"] = df[column].map(mean_encoding)
+        logger.info(f"Applied mean encoding to column '{column}'")
         return df
 
     def _apply_label_encoding(self, df: pd.DataFrame, column: str):
         """Applies label encoding to a categorical column."""
         encoder = LabelEncoderWrapper()
-        return encoder.encode(df, column)
+        df = encoder.encode(df, column)
+        logger.info(f"Applied label encoding to column '{column}'")
+        return df
 
     def _apply_one_hot_encoding(self, df: pd.DataFrame, column: str):
         """Applies one-hot encoding to a categorical column."""
         encoder = OneHotEncoderWrapper()
-        return encoder.encode(df, column)
+        df = encoder.encode(df, column)
+        logger.info(f"Applied one-hot encoding to column '{column}'")
+        return df
 
     def _apply_ordinal_encoding(self, df: pd.DataFrame, column: str, categories: list):
         """Applies ordinal encoding to a categorical column."""
@@ -79,7 +84,9 @@ class DataEncoder:
             return df
 
         encoder = OrdinalEncoderWrapper(categories)
-        return encoder.encode(df, column)
+        df = encoder.encode(df, column)
+        logger.info(f"Applied ordinal encoding to column '{column}'")
+        return df
 
 
 def main():

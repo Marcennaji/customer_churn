@@ -81,16 +81,20 @@ pip install -e .
 ## Usage
 Command line example, for cleaning a dataset :
 ```bash
-python src/data_processing/data_cleaner.py --config=config/bank_data_cleaner_config.json --csv=data/bank_data.csv --result=data/cleaned_bank_data.csv
+python src/data_preprocessing/data_cleaner.py --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=data/processed/cleaned_bank_data.csv
 ```
 Command line example, for encoding a dataset :
 ```bash
-python src/data_processing/data_encoder.py --config=config/bank_data_encoder_original_column_names_config.json --csv=data/bank_data.csv --result=data/encoded_bank_data.csv
+python src/data_prepreprocessing/data_encoder.py --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=data/processed/encoded_bank_data.csv
+```
+Command line example, for performing EDA on a cleaned dataset :
+```bash
+python src/eda/eda_visualizer.py --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=./images
 ```
 See the python script `churn_library.py`, for an example of a complete ML pipeline.
 For executing the ML pipeline on a sample dataset, using values set in config/config.json, run:
 ```bash
-churn_library
+churn_library --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=data/processed/encoded_bank_data.csv
 ```
 ## Tests
 Run unit tests:
