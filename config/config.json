@@ -1,7 +1,0 @@
-{
-    "data": {
-        "raw_data_path": "../data/raw/bank_data.csv",
-        "processed_data_path": "../data/processed/bank_data_processed.csv"
-    },
-    "preprocessing_config_path": "../config/bank_data_preprocessing_config.json"
-}

@@ -4,6 +4,9 @@ from data_preprocessing.data_encoder import DataEncoder
 from logger_config import logger
 import pandas as pd
 from common.utils import check_args_paths
+import os
+
+IMAGES_DIR = os.path.join(os.path.dirname(__file__), "..", "images")
 
 
 def import_data(pth):
@@ -15,11 +18,18 @@ def perform_eda(df):
     """Performs exploratory data analysis on cleaned data."""
     eda = EDAVisualizer(df)
 
-    eda.plot_histogram("churn")
-    eda.plot_histogram("age")
-
-    eda.plot_bar_chart("marital_status")
-    eda.plot_kde("total_transaction_count")
+    eda.plot_histogram("churn", os.path.join(IMAGES_DIR, "bank_histo_churn.png"))
+    eda.plot_histogram("age", os.path.join(IMAGES_DIR, "bank_histo_age.png"))
+    eda.plot_bar_chart(
+        "marital_status", os.path.join(IMAGES_DIR, "bank_bar_marital_status.png")
+    )
+    eda.plot_kde(
+        "total_transaction_count",
+        os.path.join(IMAGES_DIR, "bank_kde_total_transaction_count.png"),
+    )
+    eda.plot_correlation_heatmap(
+        os.path.join(IMAGES_DIR, "bank_correlation_heatmap.png")
+    )
 
 
 def encoder_helper(df, config_json_file):
@@ -54,6 +64,7 @@ def main():
 
     perform_eda(df_cleaned)
 
+    # Encode data : encode categorical features based on several possible methods (target variable proportions, one-hot encoding, etc.)
     df_encoded = encoder_helper(df_cleaned, config_json_file=config_path)
 
     df_encoded.to_csv(result_path, index=False)

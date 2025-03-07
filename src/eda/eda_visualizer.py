@@ -4,10 +4,11 @@ import pandas as pd
 from common.utils import check_args_paths
 from logger_config import logger
 from data_preprocessing.data_cleaner import DataCleaner
+import os
 
 
 class EDAVisualizer:
-    """A class for performing Exploratory Data Analysis (EDA) visualizations."""
+    """A class for performing Exploratory Data Analysis (EDA) visualizations and saving plots to files."""
 
     def __init__(self, df: pd.DataFrame):
         """
@@ -17,40 +18,109 @@ class EDAVisualizer:
             df (pd.DataFrame): The DataFrame containing the data.
         """
         self.df = df
+        sns.set_style("whitegrid")  # Improved aesthetics for all plots
 
-    def plot_histogram(self, column: str, figsize=(20, 10), bins=30):
-        """Plots a histogram for a given column."""
-        plt.figure(figsize=figsize)
-        self.df[column].hist(bins=bins)
-        plt.title(f"Histogram of {column}")
-        plt.xlabel(column)
-        plt.ylabel("Frequency")
-        plt.show()
+    def _save_plot(self, file_path: str):
+        """Saves the current plot to a file and logs the action."""
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        plt.savefig(file_path, bbox_inches="tight", dpi=300)
+        plt.close()
+        logger.info(f"Plot saved: {file_path}")
 
-    def plot_bar_chart(self, column: str, normalize=True, figsize=(20, 10)):
-        """Plots a bar chart for categorical values."""
+    def plot_histogram(
+        self, column: str, file_path: str, figsize=(12, 6), bins=30, color="skyblue"
+    ):
+        """Plots and saves a histogram for a given column, adjusting for binary values."""
         plt.figure(figsize=figsize)
-        self.df[column].value_counts(normalize=normalize).plot(kind="bar")
-        plt.title(f"Bar Chart of {column}")
-        plt.xlabel(column)
-        plt.ylabel("Proportion" if normalize else "Count")
-        plt.show()
 
-    def plot_kde(self, column: str, figsize=(20, 10)):
-        """Plots a Kernel Density Estimate (KDE) plot for a numerical column."""
-        plt.figure(figsize=figsize)
-        sns.histplot(self.df[column], stat="density", kde=True)
-        plt.title(f"KDE Plot of {column}")
-        plt.xlabel(column)
-        plt.ylabel("Density")
-        plt.show()
+        # Detect if the column is binary (only contains 0 and 1)
+        unique_values = sorted(self.df[column].dropna().unique())
+        is_binary = set(unique_values) <= {0, 1}
 
-    def plot_correlation_heatmap(self, figsize=(20, 10), cmap="Dark2_r"):
-        """Plots a heatmap of the correlation matrix."""
+        if is_binary:
+            bins = [0, 1, 2]  # Force bins to only 0 and 1
+            plt.xticks([0, 1])  # Ensure x-axis only shows 0 and 1
+
+            # Use bar plot for better aesthetics (controlled width)
+            counts = self.df[column].value_counts().sort_index()
+            plt.bar(
+                counts.index,
+                counts.values,
+                color=color,
+                edgecolor="black",
+                width=0.4,
+                alpha=0.75,
+            )
+        else:
+            # Regular histogram for non-binary data
+            self.df[column].hist(bins=bins, color=color, edgecolor="black", alpha=0.75)
+
+        plt.title(f"Histogram of {column}", fontsize=14, fontweight="bold")
+        plt.xlabel(column, fontsize=12)
+        plt.ylabel("Frequency", fontsize=12)
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+        self._save_plot(file_path)
+
+    def plot_bar_chart(
+        self,
+        column: str,
+        file_path: str,
+        normalize=True,
+        figsize=(12, 6),
+        palette="viridis",
+    ):
+        """Plots and saves a bar chart for categorical values"""
         plt.figure(figsize=figsize)
-        sns.heatmap(self.df.corr(), annot=False, cmap=cmap, linewidths=2)
-        plt.title("Correlation Heatmap")
-        plt.show()
+
+        value_counts = self.df[column].value_counts(normalize=normalize)
+        colors = sns.color_palette(palette, n_colors=len(value_counts))
+        value_counts.plot(kind="bar", color=colors, edgecolor="black", alpha=0.85)
+        plt.title(f"Bar Chart of {column}", fontsize=14, fontweight="bold")
+        plt.xlabel(column, fontsize=12)
+        plt.ylabel("Proportion" if normalize else "Count", fontsize=12)
+        plt.xticks(rotation=45)
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+        self._save_plot(file_path)
+
+    def plot_kde(self, column: str, file_path: str, figsize=(12, 6), color="purple"):
+        """Plots and saves a Kernel Density Estimate (KDE) plot for a numerical column."""
+        plt.figure(figsize=figsize)
+        sns.histplot(
+            self.df[column],
+            stat="density",
+            kde=True,
+            color=color,
+            edgecolor="black",
+            alpha=0.75,
+        )
+        plt.title(f"KDE Plot of {column}", fontsize=14, fontweight="bold")
+        plt.xlabel(column, fontsize=12)
+        plt.ylabel("Density", fontsize=12)
+        plt.grid(axis="y", linestyle="--", alpha=0.7)
+        self._save_plot(file_path)
+
+    def plot_correlation_heatmap(
+        self, file_path: str, figsize=(12, 8), cmap="coolwarm"
+    ):
+        """Plots and saves a heatmap of the correlation matrix, ensuring only numerical columns are considered."""
+        plt.figure(figsize=figsize)
+        numeric_df = self.df.select_dtypes(
+            include=["number"]
+        )  # Select only numerical columns
+        sns.heatmap(
+            numeric_df.corr(),
+            annot=True,
+            cmap=cmap,
+            linewidths=1,
+            fmt=".2f",
+            linecolor="black",
+        )
+        plt.title("Correlation Heatmap", fontsize=14, fontweight="bold")
+        plt.xticks(rotation=45, ha="right")
+        plt.yticks(rotation=0)
+        self._save_plot(file_path)
 
 
 def main():
@@ -75,11 +145,9 @@ def main():
 
     eda.plot_histogram("churn")
     eda.plot_histogram("age")
-
     eda.plot_bar_chart("marital_status")
     eda.plot_kde("total_transaction_count")
-
-    # eda.plot_correlation_heatmap()
+    eda.plot_correlation_heatmap()
 
 
 if __name__ == "__main__":
