@@ -3,7 +3,7 @@
 ## Description
 Udacity MLOps Engineer Nanodegree – February 2025
 
-This project initially aimed to refactor the notebook/churn_notebook.ipynb file by applying clean code best practices. However, it has since evolved into a more versatile and reusable Python framework.
+This project initially aimed to refactor the src/notebooks/churn_notebook.ipynb file by applying clean code best practices. However, it has since evolved into a more versatile and reusable Python framework.
 
 Instead of being limited to churn prediction, this project now provides a set of general-purpose, flexible Python classes that can be adapted to various machine learning workflows.
 
