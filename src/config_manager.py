@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 from logger_config import logger
+from common.exceptions import ConfigLoadingError
 
 
 class ConfigManager:
@@ -70,12 +71,12 @@ class ConfigManager:
         """Validates paths for CSV and config files."""
         if not os.path.isfile(self.args.csv):
             logger.error(f"CSV file not found: {self.args.csv}")
-            raise FileNotFoundError(f"CSV file not found: {self.args.csv}")
+            raise ConfigLoadingError(f"CSV file not found: {self.args.csv}")
 
         result_dir = os.path.dirname(self.args.result)
         if result_dir and not os.path.isdir(result_dir):
             logger.error(f"Directory for result file does not exist: {result_dir}")
-            raise FileNotFoundError(
+            raise ConfigLoadingError(
                 f"Directory for result file does not exist: {result_dir}"
             )
 
@@ -106,7 +107,7 @@ class ConfigManager:
                     logger.info(
                         f"{config_name.capitalize()} config successfully loaded from '{config_path}'."
                     )
-            except FileNotFoundError:
+            except ConfigLoadingError:
                 configs[config_name] = {}
                 logger.warning(
                     f"{config_name.capitalize()} config not found, using default empty config."

@@ -1,6 +1,11 @@
 from logger_config import logger
 import pandas as pd
-from common.utils import check_args_paths
+from common.exceptions import (
+    MLPipelineError,
+    DataValidationError,
+    DataPreprocessingError,
+)
+from config_manager import ConfigManager
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -13,9 +18,12 @@ class DataCleaner:
         Initializes the DataCleaner.
 
         Args:
-            csv_file (str, optional): Path to the dataset CSV file.
-            config_json_file (str, optional): Path to the JSON configuration.
+            config (dict): Configuration dictionary containing column mappings and value replacements.
         """
+        if not isinstance(config, dict):
+            raise DataValidationError(
+                "Invalid configuration provided. Expected a dictionary."
+            )
 
         self.df = None
         self.column_mapping = config.get("column_names", {}) or {}
@@ -30,20 +38,30 @@ class DataCleaner:
         remove_empty=True,
     ):
         """Applies general cleaning operations to the dataset."""
-        self._drop_unnamed_first_column(df)
-        self._drop_columns(df, drop_columns)
-        self._rename_columns(df)
-        self._replace_categorical_values(df)
-        self._log_dataset_info(df)
+        if df is None or df.empty:
+            raise DataPreprocessingError(
+                "Dataframe is empty or None. Cannot perform cleaning."
+            )
 
-        if fill_strategy:
-            self._fill_missing_values(df, strategy=fill_strategy, fill_value=fill_value)
+        try:
+            self._drop_unnamed_first_column(df)
+            self._drop_columns(df, drop_columns)
+            self._rename_columns(df)
+            self._replace_categorical_values(df)
+            self._log_dataset_info(df)
 
-        if remove_empty:
-            self._remove_empty_rows(df)
+            if fill_strategy:
+                self._fill_missing_values(
+                    df, strategy=fill_strategy, fill_value=fill_value
+                )
 
-        logger.info("Data cleaning completed successfully.")
-        return df
+            if remove_empty:
+                self._remove_empty_rows(df)
+
+            logger.info("Data cleaning completed successfully.")
+            return df
+        except Exception as e:
+            raise DataPreprocessingError(f"Error during data cleaning: {str(e)}") from e
 
     def _drop_unnamed_first_column(self, df):
         """Drops the first column if it is unnamed."""
@@ -75,21 +93,29 @@ class DataCleaner:
             strategy (str): Strategy for filling missing values ('mean', 'median', 'mode', 'constant').
             fill_value (any, optional): If strategy is 'constant', this value is required.
         """
-        if not df.empty:
-            numerical_cols = df.select_dtypes(include=["number"]).columns
+        if df.empty:
+            raise DataPreprocessingError(
+                "Cannot fill missing values on an empty dataset."
+            )
 
-            if strategy == "mean":
-                self._fill_mean(df, numerical_cols)
-            elif strategy == "median":
-                self._fill_median(df, numerical_cols)
-            elif strategy == "mode":
-                self._fill_mode(df, numerical_cols)
-            elif strategy == "constant":
-                self._fill_constant(df, fill_value)
-            else:
-                raise ValueError(
-                    f"Invalid fill strategy '{strategy}'. Choose from 'mean', 'median', 'mode', or 'constant'."
+        numerical_cols = df.select_dtypes(include=["number"]).columns
+
+        if strategy == "mean":
+            self._fill_mean(df, numerical_cols)
+        elif strategy == "median":
+            self._fill_median(df, numerical_cols)
+        elif strategy == "mode":
+            self._fill_mode(df, numerical_cols)
+        elif strategy == "constant":
+            if fill_value is None:
+                raise DataPreprocessingError(
+                    "fill_value is required when strategy='constant'."
                 )
+            self._fill_constant(df, fill_value)
+        else:
+            raise DataPreprocessingError(
+                f"Invalid fill strategy '{strategy}'. Choose from 'mean', 'median', 'mode', or 'constant'."
+            )
 
     def _fill_mean(self, df, numerical_cols):
         df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].mean())
@@ -109,31 +135,35 @@ class DataCleaner:
         logger.info("Filled missing numerical values using mode.")
 
     def _fill_constant(self, df, fill_value):
-        if fill_value is None:
-            raise ValueError("fill_value is required when strategy='constant'.")
         df.fillna(fill_value, inplace=True)
         logger.info(f"Filled missing values with constant value: {fill_value}")
 
     def _replace_categorical_values(self, df):
         """Replaces categorical values in the dataset based on predefined mappings."""
-        if not df.empty and self.value_replacements:
-            for column, replacements in self.value_replacements.items():
-                if column in df.columns:
-                    df[column] = df[column].replace(replacements)
-                    logger.info(f"Replaced values in column '{column}': {replacements}")
-                else:
-                    logger.warning(
-                        f"Column '{column}' not found. Skipping replacements."
-                    )
+        if df.empty:
+            raise DataPreprocessingError(
+                "Cannot replace categorical values on an empty dataset."
+            )
+
+        for column, replacements in self.value_replacements.items():
+            if column in df.columns:
+                df[column] = df[column].replace(replacements)
+                logger.info(f"Replaced values in column '{column}': {replacements}")
+            else:
+                logger.warning(f"Column '{column}' not found. Skipping replacements.")
 
     def _remove_empty_rows(self, df):
         """Removes rows where all values are NaN."""
-        if not df.empty:
-            num_rows_before = len(df)
-            df.dropna(how="all", inplace=True)
-            num_rows_after = len(df)
-            removed_count = num_rows_before - num_rows_after
-            logger.info(f"Removed {removed_count} completely empty rows.")
+        if df.empty:
+            raise DataPreprocessingError(
+                "Cannot remove empty rows from an empty dataset."
+            )
+
+        num_rows_before = len(df)
+        df.dropna(how="all", inplace=True)
+        num_rows_after = len(df)
+        removed_count = num_rows_before - num_rows_after
+        logger.info(f"Removed {removed_count} completely empty rows.")
 
     def _log_dataset_info(self, df):
         """Logs dataset shape, missing values per column, and missing rows."""
@@ -163,25 +193,30 @@ class DataCleaner:
 
 
 def main():
+
     try:
-        config_path, csv_path, result_path = check_args_paths(
-            description="Clean a dataset.",
-            config_help="Path to the JSON configuration file.",
-            csv_help="Path to the input dataset CSV file.",
-            result_help="Path to save the final processed dataset CSV file.",
+        config_manager = ConfigManager(description="ML Pipeline Configuration")
+
+        # Retrieve CSV and Result paths
+        csv_path = config_manager.get_csv_path()
+        result_path = config_manager.get_result_path()
+
+        # Retrieve configurations
+        preprocessing_config = config_manager.get_config("preprocessing")
+
+        # Load raw data
+        df_raw = pd.read_csv(csv_path)
+
+        # Clean data : rename columns, drop columns, fill missing values, remove empty rows, replace categorical values
+        cleaner = DataCleaner(config=preprocessing_config)
+        df_cleaned = cleaner.clean_data(
+            df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
         )
-    except FileNotFoundError as e:
+        df_cleaned.to_csv(result_path, index=False)
+
+    except MLPipelineError as e:
         logger.error(e)
         print(e)
-        return
-
-    df = pd.read_csv(csv_path)
-
-    cleaner = DataCleaner(config_json_file=config_path)
-    cleaned_df = cleaner.clean_data(df)
-
-    cleaned_df.to_csv(result_path, index=False)
-    logger.info(f"Processed dataset saved to {result_path}")
 
 
 if __name__ == "__main__":
