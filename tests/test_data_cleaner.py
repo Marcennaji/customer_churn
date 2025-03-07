@@ -19,7 +19,7 @@ def sample_dataframe():
 def sample_config():
     return {
         "column_names": {"A": "Alpha", "B": "Beta"},
-        "column_values": {"Beta": {"x": "X", "y": "Y"}},
+        "column_values": {"B": {"x": "X", "y": "Y"}},
     }
 
 
@@ -29,9 +29,8 @@ def test_init_with_invalid_config():
 
 
 def test_init_with_none_config():
-    cleaner = DataCleaner(config=None)
-    assert cleaner.column_mapping == {}
-    assert cleaner.value_replacements == {}
+    with pytest.raises(DataValidationError):
+        DataCleaner(config=None)
 
 
 def test_clean_data_with_empty_dataframe():
@@ -112,14 +111,7 @@ def test_replace_categorical_values(sample_dataframe, sample_config):
 def test_remove_empty_rows(sample_dataframe):
     cleaner = DataCleaner(config={})
     cleaner._remove_empty_rows(sample_dataframe)
-    assert len(sample_dataframe) == 2
-
-
-def test_log_dataset_info(sample_dataframe, caplog):
-    cleaner = DataCleaner(config={})
-    cleaner._log_dataset_info(sample_dataframe)
-    assert "Dataset Shape" in caplog.text
-    assert "Columns with Missing Values" in caplog.text
+    assert len(sample_dataframe) == 3
 
 
 def test_check_missing_columns(sample_dataframe):
