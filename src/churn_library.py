@@ -1,9 +1,9 @@
 from data_preprocessing.data_cleaner import DataCleaner
 from eda.eda_visualizer import EDAVisualizer
+from models.data_splitter import DatasetSplitter
 from data_preprocessing.data_encoder import DataEncoder
-from logger_config import logger
 import pandas as pd
-from common.utils import check_args_paths
+from config_manager import ConfigManager
 import os
 
 IMAGES_DIR = os.path.join(os.path.dirname(__file__), "..", "images")
@@ -32,32 +32,31 @@ def perform_eda(df):
     )
 
 
-def encoder_helper(df, config_json_file):
+def encoder_helper(df, config):
     """Encodes categorical features based on target variable proportions."""
     # encode categorical features
-    encoder = DataEncoder(config_json_file=config_json_file)
+    encoder = DataEncoder(config=config)
     df_encoded = encoder.encode(df)
     return df_encoded
 
 
 def main():
-    try:
-        config_path, csv_path, result_path = check_args_paths(
-            description="Clean a dataset.",
-            config_help="Path to the JSON configuration file.",
-            csv_help="Path to the input dataset CSV file.",
-            result_help="Path to save the final processed dataset CSV file.",
-        )
-    except FileNotFoundError as e:
-        logger.error(e)
-        print(e)
-        return
+    config_manager = ConfigManager(description="ML Pipeline Configuration")
+
+    # Retrieve CSV and Result paths
+    csv_path = config_manager.get_csv_path()
+    result_path = config_manager.get_result_path()
+
+    # Retrieve configurations
+    preprocessing_config = config_manager.get_config("preprocessing")
+    splitting_config = config_manager.get_config("splitting")
+    training_config = config_manager.get_config("training")
 
     # Load raw data
     df_raw = import_data(csv_path)
 
     # Clean data : rename columns, drop columns, fill missing values, remove empty rows, replace categorical values
-    cleaner = DataCleaner(config_json_file=config_path)
+    cleaner = DataCleaner(config=preprocessing_config)
     df_cleaned = cleaner.clean_data(
         df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
     )
@@ -65,9 +64,16 @@ def main():
     perform_eda(df_cleaned)
 
     # Encode data : encode categorical features based on several possible methods (target variable proportions, one-hot encoding, etc.)
-    df_encoded = encoder_helper(df_cleaned, config_json_file=config_path)
+    df_encoded = encoder_helper(df_cleaned, config=preprocessing_config)
 
     df_encoded.to_csv(result_path, index=False)
+
+    splitter = DatasetSplitter(df_encoded, config=splitting_config, profile="default")
+    X_train, X_test, y_train, y_test = splitter.split()
+    print(f"X_train shape: {X_train.shape}")
+    print(f"X_test shape: {X_test.shape}")
+    print(f"y_train shape: {y_train.shape}")
+    print(f"y_test shape: {y_test.shape}")
 
 
 if __name__ == "__main__":

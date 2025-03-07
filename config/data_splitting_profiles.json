@@ -1,0 +1,34 @@
+{
+    "default": {
+        "feature_columns": [
+            "age",
+            "income_bracket",
+            "total_transaction_count",
+            "marital_status",
+            "credit_limit"
+        ],
+        "target_column": "churn",
+        "test_size": 0.3,
+        "random_state": 42
+    },
+    "experiment_1": {
+        "feature_columns": [
+            "age",
+            "credit_limit",
+            "total_relationships"
+        ],
+        "target_column": "churn",
+        "test_size": 0.25,
+        "random_state": 123
+    },
+    "experiment_2": {
+        "feature_columns": [
+            "months_as_customer",
+            "income_bracket",
+            "total_transaction_amount"
+        ],
+        "target_column": "churn",
+        "test_size": 0.2,
+        "random_state": 99
+    }
+}

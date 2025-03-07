@@ -18,7 +18,7 @@ class EDAVisualizer:
             df (pd.DataFrame): The DataFrame containing the data.
         """
         self.df = df
-        sns.set_style("whitegrid")  # Improved aesthetics for all plots
+        sns.set_style("whitegrid")
 
     def _save_plot(self, file_path: str):
         """Saves the current plot to a file and logs the action."""

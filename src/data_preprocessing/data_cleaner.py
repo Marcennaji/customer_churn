@@ -1,5 +1,4 @@
 from logger_config import logger
-from config_loader import load_config
 import pandas as pd
 from common.utils import check_args_paths
 
@@ -9,7 +8,7 @@ pd.set_option("future.no_silent_downcasting", True)
 class DataCleaner:
     """Handles general data cleaning operations (decoupled from encoding)."""
 
-    def __init__(self, config_json_file=None):
+    def __init__(self, config):
         """
         Initializes the DataCleaner.
 
@@ -17,13 +16,10 @@ class DataCleaner:
             csv_file (str, optional): Path to the dataset CSV file.
             config_json_file (str, optional): Path to the JSON configuration.
         """
-        self.config_json_file = config_json_file
-        self.df = None
-        self.column_mapping = {}
-        self.value_replacements = {}
 
-        if config_json_file:
-            self._load_json_config()
+        self.df = None
+        self.column_mapping = config.get("column_names", {}) or {}
+        self.value_replacements = config.get("column_values", {}) or {}
 
     def clean_data(
         self,
@@ -48,12 +44,6 @@ class DataCleaner:
 
         logger.info("Data cleaning completed successfully.")
         return df
-
-    def _load_json_config(self):
-        """Loads column mappings and value replacements from JSON."""
-        config = load_config(self.config_json_file)
-        self.column_mapping = config.get("column_names", {})
-        self.value_replacements = config.get("column_values", {})
 
     def _drop_unnamed_first_column(self, df):
         """Drops the first column if it is unnamed."""

@@ -1,6 +1,5 @@
 from logger_config import logger
 import pandas as pd
-from config_loader import load_config
 from data_preprocessing.data_cleaner import DataCleaner
 from data_preprocessing.label_encoder import LabelEncoderWrapper
 from data_preprocessing.one_hot_encoder import OneHotEncoderWrapper
@@ -11,13 +10,11 @@ from common.utils import check_args_paths
 class DataEncoder:
     """Handles categorical feature encoding based on JSON configuration."""
 
-    def __init__(self, config_json_file=None):
-        self.config_json_file = config_json_file
-        self.df = None
-        self.encoding_config = {}
+    def __init__(self, config):
 
-        if config_json_file:
-            self._load_json_config()
+        self.df = None
+        self.encoding_config = config.get("encoding", {})
+        self.target_column = config.get("target_column", "churn")  # Default to "churn"
 
     def encode(self, df: pd.DataFrame, target_column="churn"):
         """Encodes categorical columns based on JSON configuration."""
@@ -41,12 +38,6 @@ class DataEncoder:
                 )
 
         return df
-
-    def _load_json_config(self):
-        """Loads encoding configuration from a JSON file."""
-        config = load_config(self.config_json_file)
-        self.encoding_config = config.get("encoding", {})
-        self.target_column = config.get("target_column", "churn")  # Default to "churn"
 
     def _apply_mean_encoding(self, df: pd.DataFrame, column: str, target_column: str):
         """Applies mean (target) encoding to a categorical column."""
