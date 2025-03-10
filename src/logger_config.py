@@ -17,7 +17,7 @@ def setup_logger():
 
         # Configure logging
         logging.basicConfig(
-            level=logging.DEBUG,
+            level=logging.INFO,
             format="%(asctime)s - %(levelname)s - [%(module)s] %(message)s",
             handlers=[
                 logging.FileHandler(LOG_FILE_PATH, mode="a"),  # Append mode

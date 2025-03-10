@@ -151,7 +151,7 @@ class ModelTrainer:
             model_name = type(model).__name__
 
             try:
-                if param_grid:
+                if param_grid and grid_search_config:
                     logger.info(f"Performing Grid Search for {model_name}...")
                     logger.info(
                         f"Grid Search parameters for {model_name}: {param_grid}"

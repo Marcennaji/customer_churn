@@ -9,6 +9,7 @@ import os
 from logger_config import logger
 from common.exceptions import MLPipelineError
 from models.model_evaluator import ModelEvaluator
+import matplotlib.pyplot as plt
 
 IMAGES_DIR = os.path.join(os.path.dirname(__file__), "..", "images")
 
@@ -67,7 +68,7 @@ def main():
             df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
         )
 
-        # perform_eda(df_cleaned)
+        perform_eda(df_cleaned)
 
         df_encoded = encoder_helper(df_cleaned, config=preprocessing_config)
 
@@ -83,10 +84,60 @@ def main():
         trainer = ModelTrainer(training_config=training_config)
         trained_models = trainer.train(X_train, y_train)
 
-        for _, model in trained_models.items():
-            ModelEvaluator.evaluate(model, X_train, X_test, y_train, y_test)
+        evaluator = ModelEvaluator(
+            trained_models,
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+            model_names={
+                "RandomForestClassifier": "Random Forest",
+                "LogisticRegression": "Logistic Regression",
+            },
+        )
 
-        trainer.save_models(trained_models, models_dir)
+        # Get evaluation reports
+        reports = evaluator.evaluate_models()
+
+        # Print reports (optional)
+        for model, report in reports.items():
+            print(f"\n🔹 {model} Test Results:")
+            print(report["test_report"])
+
+        # Save reports to a file
+        evaluator.save_evaluation_results(
+            reports, save_path="./results/json/evaluation.json"
+        )
+
+        # Generate ROC curves (but don't show)
+        evaluator.plot_roc_curves(save_path="./results/images/roc_curve.png")
+
+        # Show the plot when the caller decides
+        plt.show()
+
+        # Explain using SHAP for Random Forest
+        evaluator.explain_shap(
+            "RandomForestClassifier", save_path="./results/images/shap_rf.png"
+        )
+
+        # Show the SHAP plot when the caller decides
+        plt.show()
+
+        # Plot feature importance for Random Forest
+        evaluator.plot_feature_importance(
+            "RandomForestClassifier",
+            X_train.columns.tolist(),
+            save_path="./results/images/feature_importance_rf.png",
+        )
+
+        # Show the feature importance plot when the caller decides
+        plt.show()
+
+        # Save models
+        evaluator.save_models(save_dir=models_dir)
+
+        # Load models (optional)
+        evaluator.load_models(load_dir=models_dir)
 
     except MLPipelineError as e:
         logger.error(e)

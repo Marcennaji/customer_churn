@@ -94,22 +94,14 @@ pip install -e .
 ```
 
 ## Usage
-Command line example, for cleaning a dataset :
-```bash
-python src/data_preprocessing/data_cleaner.py --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=data/processed/cleaned_bank_data.csv
-```
-Command line example, for encoding a dataset :
-```bash
-python src/data_prepreprocessing/data_encoder.py --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=data/processed/encoded_bank_data.csv
-```
-Command line example, for performing EDA on a cleaned dataset :
-```bash
-python src/eda/eda_visualizer.py --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=./images
-```
 See the python script `churn_library.py`, for an example of a complete ML pipeline.
-For executing the ML pipeline on a sample dataset, using values set in config/config.json, run:
+For executing the ML pipeline on a sample dataset with default parameters values, run:
 ```bash
-churn_library --config=config/bank_data_preprocessing_config.json --csv=data/raw/bank_data.csv --result=data/processed/encoded_bank_data.csv
+churn_library --csv=data/raw/bank_data.csv
+```
+You can also override parameters default values, for example:
+```bash
+churn_library --preprocessing-config=config/preprocessing_config.json --splitting-config=config/data_splitting_profiles.json --training-config=config/training_config.json  --csv=data/raw/bank_data.csv --data-dir=data --models-dir=models
 ```
 ## Tests
 Run unit tests:
