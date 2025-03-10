@@ -5,69 +5,50 @@
     "random_forest": {
         "n_estimators": [
             100,
-            200,
-            300
+            200
         ],
         "max_depth": [
             10,
-            20,
-            30,
-            null
+            20
         ],
         "min_samples_split": [
             2,
-            5,
-            10
+            5
         ],
         "min_samples_leaf": [
             1,
-            2,
-            4
+            2
         ],
         "bootstrap": [
-            true,
-            false
+            true
         ],
         "max_features": [
-            "auto",
             "sqrt"
         ],
         "criterion": [
-            "gini",
-            "entropy"
-        ]
+            "gini"
+        ],
+        "grid_search": {
+            "cv": 3,
+            "scoring": "accuracy",
+            "n_jobs": -1,
+            "verbose": 1,
+            "error_score": "raise"
+        }
     },
     "logistic_regression": {
         "penalty": [
-            "l1",
-            "l2",
-            "elasticnet",
-            "none"
+            "l2"
         ],
         "C": [
-            0.01,
             0.1,
-            1,
-            10,
-            100
+            1
         ],
         "solver": [
-            "newton-cg",
-            "lbfgs",
-            "liblinear",
-            "sag",
-            "saga"
+            "lbfgs"
         ],
         "max_iter": [
-            100,
-            200,
-            300
+            100
         ]
-    },
-    "grid_search": {
-        "cv": 5,
-        "scoring": "accuracy",
-        "n_jobs": -1,
-        "verbose": 1
     }
 }

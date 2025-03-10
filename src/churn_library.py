@@ -8,6 +8,7 @@ from config_manager import ConfigManager
 import os
 from logger_config import logger
 from common.exceptions import MLPipelineError
+from models.model_evaluator import ModelEvaluator
 
 IMAGES_DIR = os.path.join(os.path.dirname(__file__), "..", "images")
 
@@ -48,9 +49,9 @@ def main():
     try:
         config_manager = ConfigManager(description="ML Pipeline Configuration")
 
-        # Retrieve CSV and Result paths
         csv_path = config_manager.get_csv_path()
-        result_path = config_manager.get_result_path()
+        data_dir = config_manager.get_data_dir()
+        models_dir = config_manager.get_models_dir()
 
         # Retrieve configurations
         preprocessing_config = config_manager.get_config("preprocessing")
@@ -68,24 +69,24 @@ def main():
 
         # perform_eda(df_cleaned)
 
-        # Encode data : encode categorical features based on several possible methods (target variable proportions, one-hot encoding, etc.)
         df_encoded = encoder_helper(df_cleaned, config=preprocessing_config)
 
-        df_encoded.to_csv(result_path, index=False)
+        df_encoded.to_csv(
+            os.path.join(data_dir, "processed/encoded_bank_data.csv"), index=False
+        )
 
         splitter = DatasetSplitter(
             df_encoded, config=splitting_config, profile="default"
         )
         X_train, X_test, y_train, y_test = splitter.split()
 
-        unique_values = y_test.unique()
-        if set(unique_values) == {0, 1}:
-            print("y_test contains only 0 and 1.")
-        else:
-            print(f"y_test contains unexpected values: {unique_values}")
-
         trainer = ModelTrainer(training_config=training_config)
         trained_models = trainer.train(X_train, y_train)
+
+        for _, model in trained_models.items():
+            ModelEvaluator.evaluate(model, X_train, X_test, y_train, y_test)
+
+        trainer.save_models(trained_models, models_dir)
 
     except MLPipelineError as e:
         logger.error(e)

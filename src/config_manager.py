@@ -12,13 +12,16 @@ class ConfigManager:
         self,
         description,
         csv_help="Path to the input dataset CSV file.",
-        result_help="Path to save the processed dataset CSV file.",
+        data_dir_help="Directory to save the processed dataset CSV files.",
+        models_dir_help="Directory to save the trained models.",
         preprocessing_help="Path to the preprocessing config JSON file.",
         splitting_help="Path to the data splitting config JSON file.",
         training_help="Path to the model training config JSON file.",
         default_preprocessing="config/preprocessing_config.json",
         default_splitting="config/data_splitting_profiles.json",
         default_training="config/training_config.json",
+        default_data_dir="data",
+        default_models_dir="models",
     ):
         """
         Initializes the ConfigManager and parses command-line arguments.
@@ -27,23 +30,46 @@ class ConfigManager:
         self.default_preprocessing = default_preprocessing
         self.default_splitting = default_splitting
         self.default_training = default_training
+        self.default_data_dir = default_data_dir
+        self.default_models_dir = default_models_dir
 
         self.args = self._parse_arguments(
-            csv_help, result_help, preprocessing_help, splitting_help, training_help
+            csv_help,
+            data_dir_help,
+            models_dir_help,
+            preprocessing_help,
+            splitting_help,
+            training_help,
         )
 
         self._validate_paths()
         self.configs = self._load_configs()
 
     def _parse_arguments(
-        self, csv_help, result_help, preprocessing_help, splitting_help, training_help
+        self,
+        csv_help,
+        data_dir_help,
+        models_dir_help,
+        preprocessing_help,
+        splitting_help,
+        training_help,
     ):
         """Parses command-line arguments."""
         parser = argparse.ArgumentParser(description=self.description)
 
-        # Required CSV & Result file paths
+        # Required CSV file path
         parser.add_argument("--csv", type=str, required=True, help=csv_help)
-        parser.add_argument("--result", type=str, required=True, help=result_help)
+
+        # Directories for data and models
+        parser.add_argument(
+            "--data-dir", type=str, default=self.default_data_dir, help=data_dir_help
+        )
+        parser.add_argument(
+            "--models-dir",
+            type=str,
+            default=self.default_models_dir,
+            help=models_dir_help,
+        )
 
         # Config file paths (optional, with defaults)
         parser.add_argument(
@@ -73,11 +99,16 @@ class ConfigManager:
             logger.error(f"CSV file not found: {self.args.csv}")
             raise ConfigLoadingError(f"CSV file not found: {self.args.csv}")
 
-        result_dir = os.path.dirname(self.args.result)
-        if result_dir and not os.path.isdir(result_dir):
-            logger.error(f"Directory for result file does not exist: {result_dir}")
+        if not os.path.isdir(self.args.data_dir):
+            logger.error(f"Data directory does not exist: {self.args.data_dir}")
             raise ConfigLoadingError(
-                f"Directory for result file does not exist: {result_dir}"
+                f"Data directory does not exist: {self.args.data_dir}"
+            )
+
+        if not os.path.isdir(self.args.models_dir):
+            logger.error(f"Models directory does not exist: {self.args.models_dir}")
+            raise ConfigLoadingError(
+                f"Models directory does not exist: {self.args.models_dir}"
             )
 
         # Check if each config file exists, log warnings if missing
@@ -123,6 +154,10 @@ class ConfigManager:
         """Returns the CSV file path."""
         return self.args.csv
 
-    def get_result_path(self):
-        """Returns the result file path."""
-        return self.args.result
+    def get_data_dir(self):
+        """Returns the data directory path."""
+        return self.args.data_dir
+
+    def get_models_dir(self):
+        """Returns the models directory path."""
+        return self.args.models_dir

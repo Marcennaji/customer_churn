@@ -45,6 +45,7 @@ class DatasetSplitter:
         try:
             self.feature_columns = profile_config["feature_columns"]
             self.target_column = profile_config["target_column"]
+            self.target_type = profile_config.get("target_type", None)
             self.test_size = profile_config.get("test_size", 0.3)
             self.random_state = profile_config.get("random_state", 42)
 
@@ -90,6 +91,15 @@ class DatasetSplitter:
 
             X = self.df[self.feature_columns]
             y = self.df[self.target_column]
+
+            # Convert y to the specified target type
+            if self.target_type:
+                try:
+                    y = y.astype(self.target_type)
+                except ValueError:
+                    raise DataSplittingError(
+                        f"Could not convert target column '{self.target_column}' to type {self.target_type}."
+                    )
 
             return train_test_split(
                 X, y, test_size=self.test_size, random_state=self.random_state

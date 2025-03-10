@@ -3,6 +3,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from common.exceptions import ModelTrainingError, ConfigValidationError
 from logger_config import logger
+import pandas as pd
+import os
+import joblib
+
 
 # Dictionary mapping model names to their corresponding classes
 MODEL_MAPPING = {
@@ -39,7 +43,7 @@ class ModelTrainer:
         Initializes models based on the given configuration.
 
         Returns:
-            list: A list of tuples (model_instance, hyperparameter_grid).
+            list: A list of tuples (model_instance, hyperparameter_grid, grid_search_config).
 
         Raises:
             ConfigValidationError: If no valid models are found.
@@ -47,9 +51,17 @@ class ModelTrainer:
         models = []
         for model_name, model_class in MODEL_MAPPING.items():
             if model_name in self.training_config:
-                hyperparameters = self.training_config.get(model_name, {})
+                config = self.training_config.get(model_name, {})
+                hyperparameters = {
+                    k: v for k, v in config.items() if k != "grid_search"
+                }
+                grid_search_config = config.get("grid_search", {})
                 models.append(
-                    (model_class(random_state=self.random_state), hyperparameters)
+                    (
+                        model_class(random_state=self.random_state),
+                        hyperparameters,
+                        grid_search_config,
+                    )
                 )
             else:
                 logger.warning(
@@ -62,6 +74,59 @@ class ModelTrainer:
             )
 
         return models
+
+    def _validate_inputs(self, X_train, y_train):
+        """
+        Validates the input training data.
+
+        Args:
+            X_train (pd.DataFrame): Training features.
+            y_train (pd.Series): Training target.
+
+        Raises:
+            ModelTrainingError: If the inputs are invalid.
+        """
+        if not isinstance(X_train, pd.DataFrame):
+            raise ModelTrainingError("X_train must be a pandas DataFrame.")
+        if not isinstance(y_train, pd.Series):
+            raise ModelTrainingError("y_train must be a pandas Series.")
+        if X_train.empty:
+            raise ModelTrainingError("X_train is empty.")
+        if y_train.empty:
+            raise ModelTrainingError("y_train is empty.")
+
+    def _perform_grid_search(
+        self, model, param_grid, grid_search_config, X_train, y_train
+    ):
+        """
+        Performs grid search for hyperparameter tuning.
+
+        Args:
+            model: The model instance.
+            param_grid: The hyperparameter grid.
+            grid_search_config: The grid search configuration.
+            X_train (pd.DataFrame): Training features.
+            y_train (pd.Series): Training target.
+
+        Returns:
+            The best estimator found by grid search.
+
+        Raises:
+            ModelTrainingError: If grid search fails.
+        """
+        try:
+
+            grid_search = GridSearchCV(
+                estimator=model,
+                param_grid=param_grid,
+                **grid_search_config,
+            )
+            grid_search.fit(X_train, y_train)
+            return grid_search.best_estimator_
+        except Exception as e:
+            raise ModelTrainingError(
+                f"Error during grid search for {type(model).__name__}: {str(e)}"
+            ) from e
 
     def train(self, X_train, y_train):
         """
@@ -77,21 +142,24 @@ class ModelTrainer:
         Raises:
             ModelTrainingError: If training fails.
         """
+        # Validate inputs
+        self._validate_inputs(X_train, y_train)
+
         trained_models = {}
 
-        for model, param_grid in self.models:
+        for model, param_grid, grid_search_config in self.models:
             model_name = type(model).__name__
 
             try:
                 if param_grid:
                     logger.info(f"Performing Grid Search for {model_name}...")
-                    grid_search = GridSearchCV(
-                        estimator=model,
-                        param_grid=param_grid,
-                        **self.training_config.get("grid_search", {}),
+                    logger.info(
+                        f"Grid Search parameters for {model_name}: {param_grid}"
                     )
-                    grid_search.fit(X_train, y_train)
-                    trained_models[model_name] = grid_search.best_estimator_
+                    best_model = self._perform_grid_search(
+                        model, param_grid, grid_search_config, X_train, y_train
+                    )
+                    trained_models[model_name] = best_model
                 else:
                     logger.info(f"Training {model_name} with default parameters...")
                     model.fit(X_train, y_train)
@@ -99,8 +167,32 @@ class ModelTrainer:
 
                 logger.info(f"Successfully trained {model_name}.")
             except Exception as e:
+                logger.error(f"Error training {model_name}: {str(e)}")
                 raise ModelTrainingError(
                     f"Error training {model_name}: {str(e)}"
                 ) from e
 
         return trained_models
+
+    def save_models(self, trained_models, directory):
+        """
+        Saves all trained models to the specified directory.
+
+        Args:
+            trained_models (dict): Dictionary of trained models.
+            directory (str): Directory to save the models.
+
+        Raises:
+            ModelTrainingError: If saving the models fails.
+        """
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        for model_name, model in trained_models.items():
+            model_path = os.path.join(directory, f"{model_name}.joblib")
+            try:
+                joblib.dump(model, model_path)
+                logger.info(f"Saved {model_name} to {model_path}")
+            except Exception as e:
+                logger.error(f"Error saving {model_name}: {str(e)}")
+                raise ModelTrainingError(f"Error saving {model_name}: {str(e)}") from e
