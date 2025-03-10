@@ -2,6 +2,7 @@ from data_preprocessing.data_cleaner import DataCleaner
 from eda.eda_visualizer import EDAVisualizer
 from models.data_splitter import DatasetSplitter
 from data_preprocessing.data_encoder import DataEncoder
+from models.model_trainer import ModelTrainer
 import pandas as pd
 from config_manager import ConfigManager
 import os
@@ -65,7 +66,7 @@ def main():
             df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
         )
 
-        perform_eda(df_cleaned)
+        # perform_eda(df_cleaned)
 
         # Encode data : encode categorical features based on several possible methods (target variable proportions, one-hot encoding, etc.)
         df_encoded = encoder_helper(df_cleaned, config=preprocessing_config)
@@ -76,10 +77,16 @@ def main():
             df_encoded, config=splitting_config, profile="default"
         )
         X_train, X_test, y_train, y_test = splitter.split()
-        print(f"X_train shape: {X_train.shape}")
-        print(f"X_test shape: {X_test.shape}")
-        print(f"y_train shape: {y_train.shape}")
-        print(f"y_test shape: {y_test.shape}")
+
+        unique_values = y_test.unique()
+        if set(unique_values) == {0, 1}:
+            print("y_test contains only 0 and 1.")
+        else:
+            print(f"y_test contains unexpected values: {unique_values}")
+
+        trainer = ModelTrainer(training_config=training_config)
+        trained_models = trainer.train(X_train, y_train)
+
     except MLPipelineError as e:
         logger.error(e)
         print(e)

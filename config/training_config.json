@@ -27,6 +27,14 @@
         "bootstrap": [
             true,
             false
+        ],
+        "max_features": [
+            "auto",
+            "sqrt"
+        ],
+        "criterion": [
+            "gini",
+            "entropy"
         ]
     },
     "logistic_regression": {

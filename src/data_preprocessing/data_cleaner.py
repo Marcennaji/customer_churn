@@ -1,11 +1,9 @@
 from logger_config import logger
 import pandas as pd
 from common.exceptions import (
-    MLPipelineError,
     DataValidationError,
     DataPreprocessingError,
 )
-from config_manager import ConfigManager
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -190,34 +188,3 @@ class DataCleaner:
                 f"Some specified columns were not found in the dataset: {missing_cols}"
             )
         return [col for col in columns if col in df.columns]
-
-
-def main():
-
-    try:
-        config_manager = ConfigManager(description="ML Pipeline Configuration")
-
-        # Retrieve CSV and Result paths
-        csv_path = config_manager.get_csv_path()
-        result_path = config_manager.get_result_path()
-
-        # Retrieve configurations
-        preprocessing_config = config_manager.get_config("preprocessing")
-
-        # Load raw data
-        df_raw = pd.read_csv(csv_path)
-
-        # Clean data : rename columns, drop columns, fill missing values, remove empty rows, replace categorical values
-        cleaner = DataCleaner(config=preprocessing_config)
-        df_cleaned = cleaner.clean_data(
-            df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
-        )
-        df_cleaned.to_csv(result_path, index=False)
-
-    except MLPipelineError as e:
-        logger.error(e)
-        print(e)
-
-
-if __name__ == "__main__":
-    main()

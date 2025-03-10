@@ -1,11 +1,9 @@
 from logger_config import logger
 import pandas as pd
-from data_preprocessing.data_cleaner import DataCleaner
 from data_preprocessing.label_encoder import LabelEncoderWrapper
 from data_preprocessing.one_hot_encoder import OneHotEncoderWrapper
 from data_preprocessing.ordinal_encoder import OrdinalEncoderWrapper
-from common.exceptions import MLPipelineError, DataEncodingError, ConfigValidationError
-from config_manager import ConfigManager
+from common.exceptions import DataEncodingError, ConfigValidationError
 
 
 class DataEncoder:
@@ -139,38 +137,3 @@ class DataEncoder:
             ) from e
 
         return df
-
-
-def main():
-
-    try:
-        config_manager = ConfigManager(description="ML Pipeline Configuration")
-
-        # Retrieve CSV and Result paths
-        csv_path = config_manager.get_csv_path()
-        result_path = config_manager.get_result_path()
-
-        # Retrieve configurations
-        preprocessing_config = config_manager.get_config("preprocessing")
-
-        # Load raw data
-        df_raw = pd.read_csv(csv_path)
-
-        # Clean data : rename columns, drop columns, fill missing values, remove empty rows, replace categorical values
-        cleaner = DataCleaner(config=preprocessing_config)
-        cleaned_df = cleaner.clean_data(
-            df_raw, drop_columns=["CLIENTNUM"], fill_strategy="mean", remove_empty=True
-        )
-        encoder = DataEncoder(config=preprocessing_config)
-        encoded_df = encoder.encode(cleaned_df)
-
-        encoded_df.to_csv(result_path, index=False)
-        logger.info(f"Processed dataset saved to {result_path}")
-
-    except MLPipelineError as e:
-        logger.error(e)
-        print(e)
-
-
-if __name__ == "__main__":
-    main()
