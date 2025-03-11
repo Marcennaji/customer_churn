@@ -1,7 +1,7 @@
 import os
 import subprocess
 import argparse
-import csv
+import re
 
 
 def format_code(file_path):
@@ -10,7 +10,7 @@ def format_code(file_path):
         subprocess.run(
             ["autopep8", "--in-place", "--aggressive", "--aggressive", file_path],
             check=True,
-            timeout=60,  # Add a timeout of 60 seconds
+            timeout=60,
         )
     except subprocess.TimeoutExpired:
         print(f"Formatting {file_path} timed out.")
@@ -25,18 +25,40 @@ def analyze_code(file_path):
             ["pylint", file_path],
             capture_output=True,
             text=True,
-            timeout=60,  # Add a timeout of 60 seconds
+            timeout=60,
         )
         output = result.stdout.strip()
 
-        # Extract the pylint score from the last line of the output
+        # Extract the pylint score
         score = "N/A"
         for line in output.split("\n"):
-            if line.startswith("Your code has been rated at"):
+            if "Your code has been rated at" in line:
                 score = line.split("at")[-1].strip()
                 break
 
-        return score, output.replace("\n", "\t")  # Format for tabular output
+        # Extract relevant pylint messages with line numbers
+        output_lines = output.split("\n")
+        filtered_output = []
+        for line in output_lines:
+            # Match with or without the file path prefix
+            match = re.match(r"^(?:.*?:)?(\d+):\d+: (.+)", line)
+            if match:
+                line_number, message = match.groups()
+                filtered_output.append(f"Ligne {line_number}: {message}")
+
+        formatted_output = (
+            "\n".join(filtered_output) if filtered_output else "Aucune erreur détectée."
+        )
+
+        return score, formatted_output
+
+    except subprocess.TimeoutExpired:
+        print(f"Analyzing {file_path} timed out.")
+        return "N/A", "Timeout"
+    except subprocess.CalledProcessError as e:
+        print(f"Error analyzing {file_path}: {e}")
+        return "N/A", str(e)
+
     except subprocess.TimeoutExpired:
         print(f"Analyzing {file_path} timed out.")
         return "N/A", "Timeout"
@@ -67,7 +89,6 @@ def main():
     )
     args = parser.parse_args()
 
-    # Define the list of root directories relative to the script's location
     script_dir = os.path.dirname(os.path.abspath(__file__))
     root_directories = [
         os.path.join(script_dir, "../src"),
@@ -75,20 +96,43 @@ def main():
     ]
 
     report_data = []
+    detailed_reports = []
+
     for root_directory in root_directories:
-        print(f"Entering in directory {root_directory}...")
+        print(f"Entering directory {root_directory}...")
         python_files = find_python_files(root_directory)
+
         for file in python_files:
+            if "__init__.py" in file:
+                continue
             print(f"Processing {file}...")
+
             format_code(file)
-            score, _ = analyze_code(file)
-            report_data.append([file, score])
+            score, detailed_output = analyze_code(file)
+
+            relative_file = os.path.relpath(file, script_dir)
+
+            # Store summary report
+            report_data.append([relative_file, score])
+
+            # Store detailed report
+            detailed_reports.append((relative_file, score, detailed_output))
 
     # Write results to a file
-    with open(args.report_file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f, delimiter="\t", quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        writer.writerow(["script_name", "pylint_score"])
-        writer.writerows(report_data)
+    with open(args.report_file, "w", encoding="utf-8") as f:
+        # Write tabular summary report
+        f.write("SCORES SUMMARY\n\n")
+        for row in report_data:
+            f.write(f"{row[0]}\t{row[1]}\n")
+
+        f.write("\n" + "=" * 80 + "\n\n")
+        f.write("DETAILED PYLINT REPORT\n\n")
+        # Write detailed pylint reports
+        for file, score, comments in detailed_reports:
+            f.write(f"{file} (score: {score})\n")
+            f.write(f"{'-' * len(file)}\n")
+            f.write(comments + "\n\n")
+            f.write("-" * 80 + "\n\n")
 
     print(f"Code quality report saved to {args.report_file}")
 
