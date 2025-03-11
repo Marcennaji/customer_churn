@@ -186,3 +186,4 @@ models/rfc_model.pkl
 images
 data/processed/
 customer_churn/logs
+code_quality_checker.out
