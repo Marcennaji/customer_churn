@@ -1,119 +1,181 @@
 import pytest
 import pandas as pd
 import os
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from src.models.model_trainer import ModelTrainer
 from common.exceptions import ModelTrainingError, ConfigValidationError
+from models.model_trainer import ModelTrainer
+
+
+# =========================== FIXTURES =========================== #
 
 
 @pytest.fixture
-def training_config():
+def sample_training_config():
+    """Returns a sample training configuration."""
     return {
         "random_forest": {
             "n_estimators": [100],
             "max_depth": [10],
-            "grid_search": {
-                "cv": 2,
-                "scoring": "accuracy",
-                "n_jobs": -1,
-                "verbose": 1,
-                "error_score": "raise",
-            },
+            "grid_search": {"cv": 3, "n_jobs": -1},
         },
         "logistic_regression": {
-            "penalty": ["l2"],
-            "C": [0.1, 1],
             "solver": ["lbfgs"],
-            "max_iter": [100],
+            "max_iter": [200],
+            "grid_search": {"cv": 5, "n_jobs": -1},
         },
     }
 
 
 @pytest.fixture
-def X_train():
-    return pd.DataFrame({"feature1": [1, 2, 3, 4], "feature2": [5, 6, 7, 8]})
+def sample_data():
+    """Returns sample feature and target datasets."""
+    X = pd.DataFrame({"feature1": range(10), "feature2": range(10, 20)})
+    y = pd.Series([0, 1] * 5)  # Binary classification labels
+    return X, y
 
 
 @pytest.fixture
-def y_train():
-    return pd.Series([0, 1, 0, 1])
+def model_trainer(sample_training_config):
+    """Returns a ModelTrainer instance with a sample config."""
+    return ModelTrainer(training_config=sample_training_config)
 
 
-def test_initialization(training_config):
-    trainer = ModelTrainer(training_config=training_config)
-    assert trainer.training_config == training_config
-    assert trainer.random_state == 42
-    assert len(trainer.models) == 2
+# =========================== TEST INITIALIZATION =========================== #
 
 
-def test_invalid_training_config():
-    with pytest.raises(ConfigValidationError):
-        ModelTrainer(training_config="invalid_config")
+def test_model_trainer_initialization(sample_training_config):
+    """Test successful initialization of ModelTrainer."""
+    trainer = ModelTrainer(training_config=sample_training_config)
+    assert isinstance(trainer.training_config, dict)
+    assert len(trainer.models) == 2  # Expecting two models
 
 
-def test_validate_inputs(training_config, X_train, y_train):
-    trainer = ModelTrainer(training_config=training_config)
-    trainer._validate_inputs(X_train, y_train)
+def test_model_trainer_invalid_config():
+    """Test invalid config type raises ConfigValidationError."""
+    with pytest.raises(ConfigValidationError, match="Invalid training configuration"):
+        ModelTrainer(training_config="invalid_config")  # Not a dict
 
+
+def test_model_trainer_empty_config():
+    """Test empty config raises ConfigValidationError."""
+    with pytest.raises(ConfigValidationError, match="No valid models found"):
+        ModelTrainer(training_config={})
+
+
+# =========================== TEST INPUT VALIDATION =========================== #
+
+
+def test_validate_inputs_valid(model_trainer, sample_data):
+    """Test that valid inputs pass validation."""
+    X_train, y_train = sample_data
+    model_trainer._validate_inputs(
+        X_train, y_train)  # Should not raise an error
+
+
+@pytest.mark.parametrize(
+    "invalid_X, invalid_y",
+    [
+        (None, pd.Series([0, 1] * 5)),  # X_train is None
+        (pd.DataFrame(), pd.Series([0, 1] * 5)),  # Empty X_train
+        (pd.DataFrame({"feature1": range(10)}), None),  # y_train is None
+        (pd.DataFrame({"feature1": range(10)}), pd.Series()),  # Empty y_train
+    ],
+)
+def test_validate_inputs_invalid(model_trainer, invalid_X, invalid_y):
+    """Test that invalid inputs raise ModelTrainingError."""
     with pytest.raises(ModelTrainingError):
-        trainer._validate_inputs(pd.DataFrame(), y_train)
-
-    with pytest.raises(ModelTrainingError):
-        trainer._validate_inputs(X_train, pd.Series())
+        model_trainer._validate_inputs(invalid_X, invalid_y)
 
 
-def test_initialize_models(training_config):
-    trainer = ModelTrainer(training_config=training_config)
-    models = trainer._initialize_models()
-    assert len(models) == 2
-    assert isinstance(models[0][0], RandomForestClassifier)
-    assert isinstance(models[1][0], LogisticRegression)
+# =========================== TEST MODEL TRAINING =========================== #
 
 
-@patch("src.models.model_trainer.GridSearchCV")
-def test_perform_grid_search(mock_grid_search, X_train, y_train, training_config):
-    trainer = ModelTrainer(training_config=training_config)
-    model = RandomForestClassifier(random_state=42)
-    param_grid = training_config["random_forest"]
-    grid_search_config = param_grid.pop("grid_search")
+@patch("models.model_trainer.GridSearchCV")
+def test_grid_search_success(mock_grid_search, model_trainer, sample_data):
+    """Test grid search successfully finds the best model."""
+    X_train, y_train = sample_data
+    mock_best_model = MagicMock()
 
-    # Create a mock instance of GridSearchCV
-    mock_grid_search_instance = mock_grid_search.return_value
-    # Set the best_estimator_ attribute on the mock instance
-    mock_grid_search_instance.best_estimator_ = model
-    # Ensure the fit method returns the mock instance itself
-    mock_grid_search_instance.fit.return_value = mock_grid_search_instance
+    mock_grid_search_instance = MagicMock()
+    mock_grid_search_instance.best_estimator_ = mock_best_model
+    mock_grid_search.return_value = mock_grid_search_instance
 
-    best_model = trainer._perform_grid_search(
-        model, param_grid, grid_search_config, X_train, y_train
-    )
-    assert best_model == model
+    best_model = model_trainer._perform_grid_search(
+        RandomForestClassifier(), {
+            "n_estimators": [100]}, {
+            "cv": 3}, X_train, y_train)
+
+    assert best_model == mock_best_model
+    mock_grid_search_instance.fit.assert_called_once()
 
 
-def test_train(X_train, y_train, training_config):
-    trainer = ModelTrainer(training_config=training_config)
-    trained_models = trainer.train(X_train, y_train)
+@patch("models.model_trainer.GridSearchCV")
+def test_grid_search_failure(mock_grid_search, model_trainer, sample_data):
+    """Test that grid search failure raises ModelTrainingError."""
+    X_train, y_train = sample_data
+    mock_grid_search.side_effect = Exception("Grid search error")
+
+    with pytest.raises(ModelTrainingError, match="Error during grid search"):
+        model_trainer._perform_grid_search(
+            RandomForestClassifier(),
+            {"n_estimators": [100]},
+            {"cv": 3},
+            X_train,
+            y_train,
+        )
+
+
+@patch.object(RandomForestClassifier, "fit")
+@patch.object(LogisticRegression, "fit")
+def test_train_models(mock_rf_fit, mock_lr_fit, model_trainer, sample_data):
+    """Test training all models successfully."""
+    X_train, y_train = sample_data
+    trained_models = model_trainer.train(X_train, y_train)
+
     assert "RandomForestClassifier" in trained_models
     assert "LogisticRegression" in trained_models
+    mock_rf_fit.assert_called_once()
+    mock_lr_fit.assert_called_once()
 
 
-@patch("src.models.model_trainer.joblib.dump")
-def test_save_models(mock_joblib_dump, training_config):
-    trainer = ModelTrainer(training_config=training_config)
+@patch.object(RandomForestClassifier, "fit",
+              side_effect=Exception("RF Training Error"))
+def test_train_model_failure(mock_rf_fit, model_trainer, sample_data):
+    """Test that a training failure raises ModelTrainingError."""
+    X_train, y_train = sample_data
+
+    with pytest.raises(
+        ModelTrainingError, match="Error training RandomForestClassifier"
+    ):
+        model_trainer.train(X_train, y_train)
+
+
+# =========================== TEST MODEL SAVING =========================== #
+
+
+def test_save_models(tmp_path, model_trainer):
+    """Test saving trained models."""
+    model_dir = tmp_path / "models"
     trained_models = {
-        "RandomForestClassifier": RandomForestClassifier(),
-        "LogisticRegression": LogisticRegression(),
+        "random_forest": RandomForestClassifier(),
+        "logistic_regression": LogisticRegression(),
     }
-    directory = "models"
-    trainer.save_models(trained_models, directory)
-    assert mock_joblib_dump.call_count == 2
-    mock_joblib_dump.assert_any_call(
-        trained_models["RandomForestClassifier"],
-        os.path.join(directory, "RandomForestClassifier.joblib"),
-    )
-    mock_joblib_dump.assert_any_call(
-        trained_models["LogisticRegression"],
-        os.path.join(directory, "LogisticRegression.joblib"),
-    )
+
+    model_trainer.save_models(trained_models, str(model_dir))
+
+    assert os.path.exists(model_dir / "random_forest.pkl")
+    assert os.path.exists(model_dir / "logistic_regression.pkl")
+
+
+def test_save_models_failure(tmp_path, model_trainer):
+    """Test failure during model saving."""
+    model_dir = tmp_path / "models"
+    trained_models = {"random_forest": None}
+
+    with pytest.raises(
+        ModelTrainingError,
+        match="Model 'random_forest' should be an instance of RandomForestClassifier.",
+    ):
+        model_trainer.save_models(trained_models, str(model_dir))

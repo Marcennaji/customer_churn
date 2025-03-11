@@ -83,9 +83,11 @@ def test_one_hot_encoding(sample_dataframe):
 def test_ordinal_encoding(sample_dataframe):
     config = {
         "encoding": {
-            "marital_status": {"method": "ordinal", "categories": ["Single", "Married"]}
-        }
-    }
+            "marital_status": {
+                "method": "ordinal",
+                "categories": [
+                    "Single",
+                    "Married"]}}}
     encoder = DataEncoder(config=config)
     encoded_df = encoder.encode(sample_dataframe)
     assert "marital_status" in encoded_df.columns

@@ -7,9 +7,13 @@ from common.exceptions import DataSplittingError, ConfigValidationError
 class DatasetSplitter:
     """Handles train-test data splitting based on JSON configuration profiles."""
 
-    def __init__(self, df: pd.DataFrame, config: dict, profile: str = "default"):
+    def __init__(
+            self,
+            df: pd.DataFrame,
+            config: dict,
+            profile: str = "default"):
         """
-        Initializes DatasetSplitter using a specific experiment profile.
+        Initializes DatasetSplitter using a chosen profile.
 
         Args:
             df (pd.DataFrame): The dataset.
@@ -20,7 +24,8 @@ class DatasetSplitter:
             ConfigValidationError: If the profile is missing or invalid.
         """
         if not isinstance(config, dict):
-            raise ConfigValidationError("Invalid configuration. Expected a dictionary.")
+            raise ConfigValidationError(
+                "Invalid configuration. Expected a dictionary.")
 
         if df is None or df.empty:
             raise DataSplittingError(
@@ -49,12 +54,15 @@ class DatasetSplitter:
             self.test_size = profile_config.get("test_size", 0.3)
             self.random_state = profile_config.get("random_state", 42)
 
-            if not self.feature_columns or not isinstance(self.feature_columns, list):
+            if not self.feature_columns or not isinstance(
+                    self.feature_columns, list):
                 raise ConfigValidationError(
                     f"Invalid feature_columns list in profile '{self.profile}'."
                 )
 
-            if not isinstance(self.target_column, str) or not self.target_column:
+            if not isinstance(
+                    self.target_column,
+                    str) or not self.target_column:
                 raise ConfigValidationError(
                     f"Invalid target_column in profile '{self.profile}'."
                 )
@@ -77,8 +85,7 @@ class DatasetSplitter:
         try:
             # Ensure all required columns exist in the dataset
             missing_features = [
-                col for col in self.feature_columns if col not in self.df.columns
-            ]
+                col for col in self.feature_columns if col not in self.df.columns]
             if missing_features:
                 raise DataSplittingError(
                     f"Missing feature columns in dataset: {missing_features}"

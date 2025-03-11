@@ -59,7 +59,8 @@ class DataCleaner:
             logger.info("Data cleaning completed successfully.")
             return df
         except Exception as e:
-            raise DataPreprocessingError(f"Error during data cleaning: {str(e)}") from e
+            raise DataPreprocessingError(
+                f"Error during data cleaning: {str(e)}") from e
 
     def _drop_unnamed_first_column(self, df):
         """Drops the first column if it is unnamed."""
@@ -77,8 +78,10 @@ class DataCleaner:
 
     def _rename_columns(self, df):
         """Renames dataset columns based on the JSON mapping."""
-        valid_columns = self._check_missing_columns(df, self.column_mapping.keys())
-        columns_to_rename = {col: self.column_mapping[col] for col in valid_columns}
+        valid_columns = self._check_missing_columns(
+            df, self.column_mapping.keys())
+        columns_to_rename = {
+            col: self.column_mapping[col] for col in valid_columns}
         if columns_to_rename:
             logger.info(f"Renaming columns: {columns_to_rename}")
             df.rename(columns=columns_to_rename, inplace=True)
@@ -116,11 +119,13 @@ class DataCleaner:
             )
 
     def _fill_mean(self, df, numerical_cols):
-        df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].mean())
+        df[numerical_cols] = df[numerical_cols].fillna(
+            df[numerical_cols].mean())
         logger.info("Filled missing numerical values using mean.")
 
     def _fill_median(self, df, numerical_cols):
-        df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].median())
+        df[numerical_cols] = df[numerical_cols].fillna(
+            df[numerical_cols].median())
         logger.info("Filled missing numerical values using median.")
 
     def _fill_mode(self, df, numerical_cols):
@@ -146,9 +151,11 @@ class DataCleaner:
         for column, replacements in self.value_replacements.items():
             if column in df.columns:
                 df[column] = df[column].replace(replacements)
-                logger.info(f"Replaced values in column '{column}': {replacements}")
+                logger.info(
+                    f"Replaced values in column '{column}': {replacements}")
             else:
-                logger.warning(f"Column '{column}' not found. Skipping replacements.")
+                logger.warning(
+                    f"Column '{column}' not found. Skipping replacements.")
 
     def _remove_empty_rows(self, df):
         """Removes rows where all values are NaN."""
@@ -175,8 +182,8 @@ class DataCleaner:
             logger.info(f"Dataset Shape: {num_rows} rows, {num_cols} columns")
             if not columns_with_missing_values.empty:
                 logger.info(
-                    "Columns with Missing Values:\n" + str(columns_with_missing_values)
-                )
+                    "Columns with Missing Values:\n" +
+                    str(columns_with_missing_values))
             else:
                 logger.info("No columns with missing values.")
 

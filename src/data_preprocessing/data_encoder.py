@@ -23,7 +23,8 @@ class DataEncoder:
 
         self.df = None
         self.encoding_config = config.get("encoding", {})
-        self.target_column = config.get("target_column", "churn")  # Default to "churn"
+        self.target_column = config.get(
+            "target_column", "churn")  # Default to "churn"
 
     def encode(self, df: pd.DataFrame):
         """
@@ -57,7 +58,8 @@ class DataEncoder:
 
             try:
                 if method == "mean":
-                    df = self._apply_mean_encoding(df, column, self.target_column)
+                    df = self._apply_mean_encoding(
+                        df, column, self.target_column)
                 elif method == "label":
                     df = self._apply_label_encoding(df, column)
                 elif method == "one-hot":
@@ -76,7 +78,11 @@ class DataEncoder:
 
         return df
 
-    def _apply_mean_encoding(self, df: pd.DataFrame, column: str, target_column: str):
+    def _apply_mean_encoding(
+            self,
+            df: pd.DataFrame,
+            column: str,
+            target_column: str):
         """Applies mean (target) encoding to a categorical column."""
         if target_column not in df.columns:
             raise DataEncodingError(
@@ -120,7 +126,11 @@ class DataEncoder:
 
         return df
 
-    def _apply_ordinal_encoding(self, df: pd.DataFrame, column: str, categories: list):
+    def _apply_ordinal_encoding(
+            self,
+            df: pd.DataFrame,
+            column: str,
+            categories: list):
         """Applies ordinal encoding to a categorical column."""
         if not categories:
             raise DataEncodingError(

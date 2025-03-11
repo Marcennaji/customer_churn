@@ -91,7 +91,10 @@ def test_fill_missing_values_mode(sample_dataframe):
 
 def test_fill_missing_values_constant(sample_dataframe):
     cleaner = DataCleaner(config={})
-    cleaner._fill_missing_values(sample_dataframe, strategy="constant", fill_value=0)
+    cleaner._fill_missing_values(
+        sample_dataframe,
+        strategy="constant",
+        fill_value=0)
     assert sample_dataframe["A"].isna().sum() == 0
 
 
@@ -116,6 +119,7 @@ def test_remove_empty_rows(sample_dataframe):
 
 def test_check_missing_columns(sample_dataframe):
     cleaner = DataCleaner(config={})
-    missing_columns = cleaner._check_missing_columns(sample_dataframe, ["A", "D"])
+    missing_columns = cleaner._check_missing_columns(
+        sample_dataframe, ["A", "D"])
     assert "A" in missing_columns
     assert "D" not in missing_columns

@@ -4,12 +4,20 @@ import joblib
 import numpy as np
 import json
 from sklearn.metrics import classification_report, RocCurveDisplay
+from logger_config import logger
 
 
 class ModelEvaluator:
     """Handles model evaluation, visualization, and feature importance reporting."""
 
-    def __init__(self, models, X_train, X_test, y_train, y_test, model_names=None):
+    def __init__(
+            self,
+            models,
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+            model_names=None):
         """
         Initializes the ModelEvaluator.
 
@@ -26,15 +34,12 @@ class ModelEvaluator:
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
-        self.model_names = model_names or {name: name for name in models.keys()}
+        self.model_names = model_names or {
+            name: name for name in models.keys()}
+        self.plots = {}
 
     def evaluate_models(self):
-        """
-        Evaluates models and returns classification reports.
-
-        Returns:
-            dict: {model_name: {"train_report": {...}, "test_report": {...}}}
-        """
+        """Evaluates models and returns classification reports."""
         reports = {}
 
         for name, model in self.models.items():
@@ -52,15 +57,9 @@ class ModelEvaluator:
 
         return reports  # The caller can print, log, or save this data
 
-    def plot_roc_curves(self, save_path=None):
-        """
-        Generates ROC curves and optionally saves the plot.
-
-        Args:
-            save_path (str, optional): Path to save the plot. If None, only generates the plot.
-        """
-        plt.figure(figsize=(15, 8))
-        ax = plt.gca()
+    def plot_roc_curves(self):
+        """Generates and stores ROC curves."""
+        fig, ax = plt.subplots(figsize=(15, 8))
 
         for name, model in self.models.items():
             RocCurveDisplay.from_estimator(
@@ -72,18 +71,11 @@ class ModelEvaluator:
                 name=self.model_names.get(name, name),
             )
 
-        plt.title("ROC Curves")
-        if save_path:
-            plt.savefig(save_path)
+        ax.set_title("ROC Curves")
+        self.plots["roc_curve"] = fig
 
-    def explain_shap(self, model_name, save_path=None):
-        """
-        Generates a SHAP summary plot for a tree-based model.
-
-        Args:
-            model_name (str): Name of the model to explain.
-            save_path (str, optional): Path to save the SHAP plot.
-        """
+    def explain_shap(self, model_name):
+        """Generates and stores a SHAP summary plot for a tree-based model."""
         if model_name not in self.models:
             raise ValueError(f"⚠ Model '{model_name}' not found in evaluator.")
 
@@ -92,20 +84,15 @@ class ModelEvaluator:
         shap_values = explainer.shap_values(self.X_test)
 
         shap.summary_plot(
-            shap_values, self.X_test, plot_type="bar", show=False
-        )  # ⬅ Removed plt.show()
-        if save_path:
-            plt.savefig(save_path)
+            shap_values,
+            self.X_test,
+            plot_type="bar",
+            show=False)
+        fig = plt.gcf()
+        self.plots[f"shap_{model_name}"] = fig
 
-    def plot_feature_importance(self, model_name, feature_names, save_path=None):
-        """
-        Generates a feature importance plot for a tree-based model.
-
-        Args:
-            model_name (str): Name of the model to plot.
-            feature_names (list): List of feature names.
-            save_path (str, optional): Path to save the plot.
-        """
+    def plot_feature_importance(self, model_name, feature_names):
+        """Generates and stores a feature importance plot for a tree-based model."""
         if model_name not in self.models:
             raise ValueError(f"⚠ Model '{model_name}' not found in evaluator.")
 
@@ -119,18 +106,32 @@ class ModelEvaluator:
         importances = model.feature_importances_
         indices = np.argsort(importances)[::-1]
 
-        plt.figure(figsize=(20, 5))
-        plt.title(
+        fig, ax = plt.subplots(figsize=(20, 5))
+        ax.set_title(
             f"Feature Importance - {self.model_names.get(model_name, model_name)}"
         )
-        plt.ylabel("Importance")
-        plt.bar(range(len(feature_names)), importances[indices])
-        plt.xticks(
-            range(len(feature_names)), [feature_names[i] for i in indices], rotation=90
-        )
+        ax.set_ylabel("Importance")
+        ax.bar(range(len(feature_names)), importances[indices])
+        ax.set_xticks(range(len(feature_names)))
+        ax.set_xticklabels([feature_names[i] for i in indices], rotation=90)
 
-        if save_path:
-            plt.savefig(save_path)
+        self.plots[f"feature_importance_{model_name}"] = fig
+
+    def save_plots(self, save_dir: str):
+        """Saves all stored plots to the specified directory."""
+        import os
+
+        os.makedirs(save_dir, exist_ok=True)
+
+        for name, fig in self.plots.items():
+            file_path = os.path.join(save_dir, f"{name}.png")
+            fig.savefig(file_path, bbox_inches="tight", dpi=300)
+            logger.info(f"Plot saved: {file_path}")
+
+    def show_plots(self):
+        """Displays all stored plots."""
+        for fig in self.plots.values():
+            fig.show()
 
     def save_models(self, save_dir="./models"):
         """Saves all models to disk."""
@@ -151,13 +152,9 @@ class ModelEvaluator:
             if os.path.exists(model_path):
                 self.models[name] = joblib.load(model_path)
 
-    def save_evaluation_results(self, results, save_path="evaluation_results.json"):
-        """
-        Saves evaluation results to a JSON file.
-
-        Args:
-            results (dict): Evaluation results from `evaluate_models()`.
-            save_path (str): Path to save the JSON file.
-        """
-        with open(save_path, "w") as f:
+    def save_evaluation_results(
+        self, results, save_file_path="evaluation_results.json"
+    ):
+        """Saves evaluation results to a JSON file."""
+        with open(save_file_path, "w") as f:
             json.dump(results, f, indent=4)

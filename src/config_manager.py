@@ -17,6 +17,7 @@ class ConfigManager:
         preprocessing_help="Path to the preprocessing config JSON file.",
         splitting_help="Path to the data splitting config JSON file.",
         training_help="Path to the model training config JSON file.",
+        eval_only_help="Enable evaluation-only mode (skip training).",
         default_preprocessing="config/preprocessing_config.json",
         default_splitting="config/data_splitting_profiles.json",
         default_training="config/training_config.json",
@@ -40,6 +41,7 @@ class ConfigManager:
             preprocessing_help,
             splitting_help,
             training_help,
+            eval_only_help,
         )
 
         self._validate_paths()
@@ -53,6 +55,7 @@ class ConfigManager:
         preprocessing_help,
         splitting_help,
         training_help,
+        eval_only_help,
     ):
         """Parses command-line arguments."""
         parser = argparse.ArgumentParser(description=self.description)
@@ -62,8 +65,10 @@ class ConfigManager:
 
         # Directories for data and models
         parser.add_argument(
-            "--data-dir", type=str, default=self.default_data_dir, help=data_dir_help
-        )
+            "--data-dir",
+            type=str,
+            default=self.default_data_dir,
+            help=data_dir_help)
         parser.add_argument(
             "--models-dir",
             type=str,
@@ -91,6 +96,12 @@ class ConfigManager:
             help=training_help,
         )
 
+        # Evaluation-only flag (skip training)
+        parser.add_argument(
+            "--eval-only",
+            action="store_true",
+            help=eval_only_help)
+
         return parser.parse_args()
 
     def _validate_paths(self):
@@ -100,13 +111,15 @@ class ConfigManager:
             raise ConfigLoadingError(f"CSV file not found: {self.args.csv}")
 
         if not os.path.isdir(self.args.data_dir):
-            logger.error(f"Data directory does not exist: {self.args.data_dir}")
+            logger.error(
+                f"Data directory does not exist: {self.args.data_dir}")
             raise ConfigLoadingError(
                 f"Data directory does not exist: {self.args.data_dir}"
             )
 
         if not os.path.isdir(self.args.models_dir):
-            logger.error(f"Models directory does not exist: {self.args.models_dir}")
+            logger.error(
+                f"Models directory does not exist: {self.args.models_dir}")
             raise ConfigLoadingError(
                 f"Models directory does not exist: {self.args.models_dir}"
             )
@@ -161,3 +174,7 @@ class ConfigManager:
     def get_models_dir(self):
         """Returns the models directory path."""
         return self.args.models_dir
+
+    def is_eval_only(self):
+        """Returns True if evaluation-only mode is enabled."""
+        return self.args.eval_only

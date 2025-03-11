@@ -161,7 +161,8 @@ class ModelTrainer:
                     )
                     trained_models[model_name] = best_model
                 else:
-                    logger.info(f"Training {model_name} with default parameters...")
+                    logger.info(
+                        f"Training {model_name} with default parameters...")
                     model.fit(X_train, y_train)
                     trained_models[model_name] = model
 
@@ -189,10 +190,22 @@ class ModelTrainer:
             os.makedirs(directory)
 
         for model_name, model in trained_models.items():
-            model_path = os.path.join(directory, f"{model_name}.joblib")
+
+            if model_name not in MODEL_MAPPING:
+                raise ModelTrainingError(
+                    f"Model name '{model_name}' is not handled.")
+
+            expected_model_class = MODEL_MAPPING[model_name]
+            if not isinstance(model, expected_model_class):
+                raise ModelTrainingError(
+                    f"Model '{model_name}' should be an instance of {expected_model_class.__name__}."
+                )
+
+            model_path = os.path.join(directory, f"{model_name}.pkl")
             try:
                 joblib.dump(model, model_path)
                 logger.info(f"Saved {model_name} to {model_path}")
             except Exception as e:
                 logger.error(f"Error saving {model_name}: {str(e)}")
-                raise ModelTrainingError(f"Error saving {model_name}: {str(e)}") from e
+                raise ModelTrainingError(
+                    f"Error saving {model_name}: {str(e)}") from e

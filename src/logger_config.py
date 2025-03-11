@@ -30,7 +30,8 @@ def setup_logger():
         return logger
 
     except Exception as e:
-        raise LoggerConfigurationError(f"Error configuring logger: {str(e)}") from e
+        raise LoggerConfigurationError(
+            f"Error configuring logger: {str(e)}") from e
 
 
 # Initialize logger
