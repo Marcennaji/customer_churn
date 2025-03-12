@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import joblib
+import argparse
 
 from data_preprocessing.data_cleaner import DataCleaner
 from eda.eda_visualizer import EDAVisualizer
@@ -16,9 +17,9 @@ from common.exceptions import MLPipelineError, ModelLoadError
 # ========================= CONFIGURATION LOADING ========================= #
 
 
-def load_configs():
+def load_configs(config_file_path):
     """Loads all configuration files."""
-    config_manager = ConfigManager(description="ML Pipeline Configuration")
+    config_manager = ConfigManager(config_file_path)
     return {
         "csv_path": config_manager.get_csv_path(),
         "data_dir": config_manager.get_data_dir(),
@@ -131,13 +132,13 @@ def load_models(models_to_load, models_dir):
 # ========================= MAIN PIPELINE ========================= #
 
 
-def main():
+def main(config_file_path):
     """
     Main pipeline execution function.
     """
     try:
         # Load configurations
-        config = load_configs()
+        config = load_configs(config_file_path)
 
         # Data processing
         df_cleaned = import_and_clean_data(config["csv_path"], config["preprocessing"])
@@ -167,4 +168,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run the churn prediction pipeline.")
+    parser.add_argument(
+        "--config", type=str, required=True, help="Path to the config.json file"
+    )
+    args = parser.parse_args()
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    config_file_path = os.path.abspath(os.path.join(script_dir, args.config))
+    main(config_file_path)

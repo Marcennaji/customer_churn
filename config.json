@@ -1,0 +1,10 @@
+{
+    "root_directory": "C:/Users/Utilisateur/dev/perso/devops/udacity/customer_churn",
+    "csv": "data/raw/bank_data.csv",
+    "data_dir": "data",
+    "models_dir": "models",
+    "preprocessing": "config/preprocessing_config.json",
+    "splitting": "config/data_splitting_profiles.json",
+    "training": "config/training_config.json",
+    "eval_only": false
+}

@@ -1,4 +1,3 @@
-import argparse
 import os
 import json
 from logger_config import logger
@@ -6,175 +5,141 @@ from common.exceptions import ConfigLoadingError
 
 
 class ConfigManager:
-    """Handles argument parsing and configuration file loading with logging."""
+    """Handles configuration loading from a JSON file with logging."""
 
-    def __init__(
-        self,
-        description,
-        csv_help="Path to the input dataset CSV file.",
-        data_dir_help="Directory to save the processed dataset CSV files.",
-        models_dir_help="Directory to save the trained models.",
-        preprocessing_help="Path to the preprocessing config JSON file.",
-        splitting_help="Path to the data splitting config JSON file.",
-        training_help="Path to the model training config JSON file.",
-        eval_only_help="Enable evaluation-only mode (skip training).",
-        default_preprocessing="config/preprocessing_config.json",
-        default_splitting="config/data_splitting_profiles.json",
-        default_training="config/training_config.json",
-        default_data_dir="data",
-        default_models_dir="models",
-    ):
+    def __init__(self, config_file_path):
         """
-        Initializes the ConfigManager and parses command-line arguments.
+        Initializes the ConfigManager and loads configuration from a JSON file.
         """
-        self.description = description
-        self.default_preprocessing = default_preprocessing
-        self.default_splitting = default_splitting
-        self.default_training = default_training
-        self.default_data_dir = default_data_dir
-        self.default_models_dir = default_models_dir
-
-        self.args = self._parse_arguments(
-            csv_help,
-            data_dir_help,
-            models_dir_help,
-            preprocessing_help,
-            splitting_help,
-            training_help,
-            eval_only_help,
-        )
-
+        self.config_file_path = config_file_path
+        self.config = self._load_config_file()
+        self.root_directory = self.config.get("root_directory", "")
+        self._convert_to_paths()
         self._validate_paths()
-        self.configs = self._load_configs()
+        self._load_nested_json_data()
 
-    def _parse_arguments(
-        self,
-        csv_help,
-        data_dir_help,
-        models_dir_help,
-        preprocessing_help,
-        splitting_help,
-        training_help,
-        eval_only_help,
-    ):
-        """Parses command-line arguments."""
-        parser = argparse.ArgumentParser(description=self.description)
+    def _load_config_file(self):
+        """Loads the configuration from the JSON file."""
+        if not os.path.isfile(self.config_file_path):
+            logger.error("Config file not found: %s", self.config_file_path)
+            raise ConfigLoadingError(f"Config file not found: {self.config_file_path}")
 
-        # Required CSV file path
-        parser.add_argument("--csv", type=str, required=True, help=csv_help)
+        with open(self.config_file_path, "r") as file:
+            config = json.load(file)
+            logger.info("Config file loaded from '%s'.", self.config_file_path)
+            return config
 
-        # Directories for data and models
-        parser.add_argument(
-            "--data-dir",
-            type=str,
-            default=self.default_data_dir,
-            help=data_dir_help)
-        parser.add_argument(
-            "--models-dir",
-            type=str,
-            default=self.default_models_dir,
-            help=models_dir_help,
+    def _load_json_data(self, file_path):
+        """Loads JSON data from a file."""
+        if not os.path.isfile(file_path):
+            logger.error("JSON file not found: %s", file_path)
+            raise ConfigLoadingError(f"JSON file not found: {file_path}")
+
+        with open(file_path, "r") as file:
+            data = json.load(file)
+            logger.info("JSON data loaded from '%s'.", file_path)
+            return data
+
+    def _convert_to_paths(self):
+        """Converts relative paths to absolute paths based on the root directory."""
+        self.config["csv"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["csv"])
+        )
+        self.config["data_dir"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["data_dir"])
+        )
+        self.config["models_dir"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["models_dir"])
+        )
+        self.config["preprocessing"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["preprocessing"])
+        )
+        self.config["splitting"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["splitting"])
+        )
+        self.config["training"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["training"])
         )
 
-        # Config file paths (optional, with defaults)
-        parser.add_argument(
-            "--preprocessing-config",
-            type=str,
-            default=self.default_preprocessing,
-            help=preprocessing_help,
-        )
-        parser.add_argument(
-            "--splitting-config",
-            type=str,
-            default=self.default_splitting,
-            help=splitting_help,
-        )
-        parser.add_argument(
-            "--training-config",
-            type=str,
-            default=self.default_training,
-            help=training_help,
-        )
-
-        # Evaluation-only flag (skip training)
-        parser.add_argument(
-            "--eval-only",
-            action="store_true",
-            help=eval_only_help)
-
-        return parser.parse_args()
+        # Log the converted paths for debugging
+        logger.info("CSV path: %s", self.config["csv"])
+        logger.info("Data directory path: %s", self.config["data_dir"])
+        logger.info("Models directory path: %s", self.config["models_dir"])
+        logger.info("Preprocessing config path: %s", self.config["preprocessing"])
+        logger.info("Splitting config path: %s", self.config["splitting"])
+        logger.info("Training config path: %s", self.config["training"])
 
     def _validate_paths(self):
         """Validates paths for CSV and config files."""
-        if not os.path.isfile(self.args.csv):
-            logger.error(f"CSV file not found: {self.args.csv}")
-            raise ConfigLoadingError(f"CSV file not found: {self.args.csv}")
+        if not os.path.isfile(self.config["csv"]):
+            logger.error("CSV file not found: %s", self.config["csv"])
+            raise ConfigLoadingError(f"CSV file not found: {self.config['csv']}")
 
-        if not os.path.isdir(self.args.data_dir):
-            logger.error(
-                f"Data directory does not exist: {self.args.data_dir}")
+        if not os.path.isdir(self.config["data_dir"]):
+            logger.error("Data directory does not exist: %s", self.config["data_dir"])
             raise ConfigLoadingError(
-                f"Data directory does not exist: {self.args.data_dir}"
+                f"Data directory does not exist: {self.config['data_dir']}"
             )
 
-        if not os.path.isdir(self.args.models_dir):
+        if not os.path.isdir(self.config["models_dir"]):
             logger.error(
-                f"Models directory does not exist: {self.args.models_dir}")
+                "Models directory does not exist: %s", self.config["models_dir"]
+            )
             raise ConfigLoadingError(
-                f"Models directory does not exist: {self.args.models_dir}"
+                f"Models directory does not exist: {self.config['models_dir']}"
             )
 
-        # Check if each config file exists, log warnings if missing
-        for config_name, config_path in {
-            "Preprocessing config": self.args.preprocessing_config,
-            "Splitting config": self.args.splitting_config,
-            "Training config": self.args.training_config,
-        }.items():
-            if not os.path.isfile(config_path):
-                logger.warning(
-                    f"{config_name} not found at '{config_path}', using default values."
-                )
-            else:
-                logger.info(f"{config_name} loaded from '{config_path}'.")
+        if not os.path.isfile(self.config["preprocessing"]):
+            logger.error(
+                "Preprocessing config file not found: %s", self.config["preprocessing"]
+            )
+            raise ConfigLoadingError(
+                f"Preprocessing config file not found: {self.config['preprocessing']}"
+            )
 
-    def _load_configs(self):
-        """Loads JSON configurations from files."""
-        configs = {}
-        for config_name, config_path in {
-            "preprocessing": self.args.preprocessing_config,
-            "splitting": self.args.splitting_config,
-            "training": self.args.training_config,
-        }.items():
-            try:
-                with open(config_path, "r") as file:
-                    configs[config_name] = json.load(file)
-                    logger.info(
-                        f"{config_name.capitalize()} config successfully loaded from '{config_path}'."
-                    )
-            except ConfigLoadingError:
-                configs[config_name] = {}
-                logger.warning(
-                    f"{config_name.capitalize()} config not found, using default empty config."
-                )
+        if not os.path.isfile(self.config["splitting"]):
+            logger.error(
+                "Splitting config file not found: %s", self.config["splitting"]
+            )
+            raise ConfigLoadingError(
+                f"Splitting config file not found: {self.config['splitting']}"
+            )
 
-        return configs
+        if not os.path.isfile(self.config["training"]):
+            logger.error("Training config file not found: %s", self.config["training"])
+            raise ConfigLoadingError(
+                f"Training config file not found: {self.config['training']}"
+            )
+
+    def _load_nested_json_data(self):
+        """Loads JSON data for preprocessing, splitting, and training configurations."""
+        self.config["preprocessing"] = self._load_json_data(
+            self.config["preprocessing"]
+        )
+        self.config["splitting"] = self._load_json_data(self.config["splitting"])
+        self.config["training"] = self._load_json_data(self.config["training"])
+
+        # Log the loaded JSON data for debugging
+        logger.info("Preprocessing config data loaded.")
+        logger.info("Splitting config data loaded.")
+        logger.info("Training config data loaded.")
 
     def get_config(self, config_type):
         """Retrieves a specific configuration dictionary (preprocessing, splitting, training)."""
-        return self.configs.get(config_type, {})
+        return self.config.get(config_type, {})
 
     def get_csv_path(self):
         """Returns the CSV file path."""
-        return self.args.csv
+        return self.config["csv"]
 
     def get_data_dir(self):
         """Returns the data directory path."""
-        return self.args.data_dir
+        return self.config["data_dir"]
 
     def get_models_dir(self):
         """Returns the models directory path."""
-        return self.args.models_dir
+        return self.config["models_dir"]
 
     def is_eval_only(self):
         """Returns True if evaluation-only mode is enabled."""
-        return self.args.eval_only
+        return self.config.get("eval_only", False)
