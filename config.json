@@ -3,6 +3,7 @@
     "csv": "data/raw/bank_data.csv",
     "data_dir": "data",
     "models_dir": "models",
+    "results_dir": "results",
     "preprocessing": "config/preprocessing_config.json",
     "splitting": "config/data_splitting_profiles.json",
     "training": "config/training_config.json",

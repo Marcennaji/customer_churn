@@ -124,7 +124,7 @@ def main():
             f.write(comments + "\n\n")
             f.write("-" * 80 + "\n\n")
 
-    print(f"Code quality report saved to {args.report_file}")
+    print(f"Pylint report saved to {args.report_file}")
 
 
 if __name__ == "__main__":

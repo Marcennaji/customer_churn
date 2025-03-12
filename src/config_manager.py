@@ -45,83 +45,73 @@ class ConfigManager:
         self.config["csv"] = os.path.abspath(
             os.path.join(self.root_directory, self.config["csv"])
         )
+        logger.info("CSV path: %s", self.config["csv"])
+
         self.config["data_dir"] = os.path.abspath(
             os.path.join(self.root_directory, self.config["data_dir"])
         )
+        logger.info("Data directory path: %s", self.config["data_dir"])
+
         self.config["models_dir"] = os.path.abspath(
             os.path.join(self.root_directory, self.config["models_dir"])
         )
+        logger.info("Models directory path: %s", self.config["models_dir"])
+
+        self.config["results_dir"] = os.path.abspath(
+            os.path.join(self.root_directory, self.config["results_dir"])
+        )
+        logger.info("Results directory path: %s", self.config["results_dir"])
+
         self.config["preprocessing"] = os.path.abspath(
             os.path.join(self.root_directory, self.config["preprocessing"])
         )
+        logger.info("Preprocessing config path: %s", self.config["preprocessing"])
+
         self.config["splitting"] = os.path.abspath(
             os.path.join(self.root_directory, self.config["splitting"])
         )
+        logger.info("Splitting config path: %s", self.config["splitting"])
+
         self.config["training"] = os.path.abspath(
             os.path.join(self.root_directory, self.config["training"])
         )
-
-        # Log the converted paths for debugging
-        logger.info("CSV path: %s", self.config["csv"])
-        logger.info("Data directory path: %s", self.config["data_dir"])
-        logger.info("Models directory path: %s", self.config["models_dir"])
-        logger.info("Preprocessing config path: %s", self.config["preprocessing"])
-        logger.info("Splitting config path: %s", self.config["splitting"])
         logger.info("Training config path: %s", self.config["training"])
 
     def _validate_paths(self):
         """Validates paths for CSV and config files."""
-        if not os.path.isfile(self.config["csv"]):
-            logger.error("CSV file not found: %s", self.config["csv"])
-            raise ConfigLoadingError(f"CSV file not found: {self.config['csv']}")
+        self._validate_file_path(self.config["csv"], "CSV file")
+        self._validate_directory_path(self.config["data_dir"], "Data directory")
+        self._validate_directory_path(self.config["models_dir"], "Models directory")
+        self._validate_directory_path(self.config["results_dir"], "Results directory")
+        self._validate_file_path(
+            self.config["preprocessing"], "Preprocessing config file"
+        )
+        self._validate_file_path(self.config["splitting"], "Splitting config file")
+        self._validate_file_path(self.config["training"], "Training config file")
 
-        if not os.path.isdir(self.config["data_dir"]):
-            logger.error("Data directory does not exist: %s", self.config["data_dir"])
-            raise ConfigLoadingError(
-                f"Data directory does not exist: {self.config['data_dir']}"
-            )
+    def _validate_file_path(self, path, description):
+        """Validates that a file path exists."""
+        if not os.path.isfile(path):
+            logger.error("%s not found: %s", description, path)
+            raise ConfigLoadingError(f"{description} not found: {path}")
 
-        if not os.path.isdir(self.config["models_dir"]):
-            logger.error(
-                "Models directory does not exist: %s", self.config["models_dir"]
-            )
-            raise ConfigLoadingError(
-                f"Models directory does not exist: {self.config['models_dir']}"
-            )
-
-        if not os.path.isfile(self.config["preprocessing"]):
-            logger.error(
-                "Preprocessing config file not found: %s", self.config["preprocessing"]
-            )
-            raise ConfigLoadingError(
-                f"Preprocessing config file not found: {self.config['preprocessing']}"
-            )
-
-        if not os.path.isfile(self.config["splitting"]):
-            logger.error(
-                "Splitting config file not found: %s", self.config["splitting"]
-            )
-            raise ConfigLoadingError(
-                f"Splitting config file not found: {self.config['splitting']}"
-            )
-
-        if not os.path.isfile(self.config["training"]):
-            logger.error("Training config file not found: %s", self.config["training"])
-            raise ConfigLoadingError(
-                f"Training config file not found: {self.config['training']}"
-            )
+    def _validate_directory_path(self, path, description):
+        """Validates that a directory path exists."""
+        if not os.path.isdir(path):
+            logger.error("%s does not exist: %s", description, path)
+            raise ConfigLoadingError(f"{description} does not exist: {path}")
 
     def _load_nested_json_data(self):
         """Loads JSON data for preprocessing, splitting, and training configurations."""
         self.config["preprocessing"] = self._load_json_data(
             self.config["preprocessing"]
         )
-        self.config["splitting"] = self._load_json_data(self.config["splitting"])
-        self.config["training"] = self._load_json_data(self.config["training"])
-
-        # Log the loaded JSON data for debugging
         logger.info("Preprocessing config data loaded.")
+
+        self.config["splitting"] = self._load_json_data(self.config["splitting"])
         logger.info("Splitting config data loaded.")
+
+        self.config["training"] = self._load_json_data(self.config["training"])
         logger.info("Training config data loaded.")
 
     def get_config(self, config_type):
@@ -139,6 +129,10 @@ class ConfigManager:
     def get_models_dir(self):
         """Returns the models directory path."""
         return self.config["models_dir"]
+
+    def get_results_dir(self):
+        """Returns the results directory path."""
+        return self.config["results_dir"]
 
     def is_eval_only(self):
         """Returns True if evaluation-only mode is enabled."""

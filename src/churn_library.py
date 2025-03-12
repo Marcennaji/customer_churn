@@ -24,6 +24,7 @@ def load_configs(config_file_path):
         "csv_path": config_manager.get_csv_path(),
         "data_dir": config_manager.get_data_dir(),
         "models_dir": config_manager.get_models_dir(),
+        "results_dir": config_manager.get_results_dir(),
         "preprocessing": config_manager.get_config("preprocessing"),
         "splitting": config_manager.get_config("splitting"),
         "training": config_manager.get_config("training"),
@@ -88,7 +89,7 @@ def train_models(X_train, y_train, training_config, models_dir):
     return models
 
 
-def evaluate_models(models, X_train, X_test, y_train, y_test):
+def evaluate_models(models, config, X_train, X_test, y_train, y_test):
     """Evaluates trained models and generates reports and visualizations."""
     evaluator = ModelEvaluator(
         models,
@@ -104,14 +105,14 @@ def evaluate_models(models, X_train, X_test, y_train, y_test):
 
     reports = evaluator.evaluate_models()
     evaluator.save_evaluation_results(
-        reports, save_file_path="./results/json/evaluation.json"
+        reports, save_file_path=config["results_dir"] + "/json/evaluation.json"
     )
 
     evaluator.plot_roc_curves()
     evaluator.plot_feature_importance(
         "RandomForestClassifier", X_train.columns.tolist()
     )
-    evaluator.save_plots(save_dir="./results/images")
+    evaluator.save_plots(save_dir=config["results_dir"] + "/images")
 
     return evaluator
 
@@ -159,7 +160,7 @@ def main(config_file_path):
             )
 
         # Model evaluation
-        evaluate_models(models, X_train, X_test, y_train, y_test)
+        evaluate_models(models, config, X_train, X_test, y_train, y_test)
 
         logger.info("Pipeline execution completed successfully")
 
