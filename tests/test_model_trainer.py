@@ -15,12 +15,12 @@ from models.model_trainer import ModelTrainer
 def sample_training_config():
     """Returns a sample training configuration."""
     return {
-        "random_forest": {
+        "RandomForestClassifier": {
             "n_estimators": [100],
             "max_depth": [10],
             "grid_search": {"cv": 3, "n_jobs": -1},
         },
-        "logistic_regression": {
+        "LogisticRegression": {
             "solver": ["lbfgs"],
             "max_iter": [200],
             "grid_search": {"cv": 5, "n_jobs": -1},
@@ -162,17 +162,17 @@ def test_save_models(tmp_path, model_trainer):
 
     model_trainer.save_models(trained_models, str(model_dir))
 
-    assert os.path.exists(model_dir / "random_forest.pkl")
-    assert os.path.exists(model_dir / "logistic_regression.pkl")
+    assert os.path.exists(model_dir / "RandomForestClassifier.pkl")
+    assert os.path.exists(model_dir / "LogisticRegression.pkl")
 
 
 def test_save_models_failure(tmp_path, model_trainer):
     """Test failure during model saving."""
     model_dir = tmp_path / "models"
-    trained_models = {"random_forest": None}
+    trained_models = {"RandomForestClassifier": None}
 
     with pytest.raises(
         ModelTrainingError,
-        match="Model 'random_forest' should be an instance of RandomForestClassifier.",
+        match="Model 'RandomForestClassifier' should be an instance of RandomForestClassifier.",
     ):
         model_trainer.save_models(trained_models, str(model_dir))

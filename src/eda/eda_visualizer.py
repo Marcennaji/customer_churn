@@ -1,3 +1,9 @@
+"""
+This module handles Exploratory Data Analysis (EDA) visualizations for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -19,14 +25,7 @@ class EDAVisualizer:
         self.plots = {}  # Store figures for later use
         sns.set_style("whitegrid")
 
-    def plot_histogram(
-            self,
-            column: str,
-            figsize=(
-                12,
-                6),
-            bins=30,
-            color="skyblue"):
+    def plot_histogram(self, column: str, figsize=(12, 6), bins=30, color="skyblue"):
         """Generates a histogram for a given column and stores it."""
         fig, ax = plt.subplots(figsize=figsize)
 

@@ -1,3 +1,9 @@
+"""
+This module handles general data cleaning operations for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
 from logger_config import logger
 import pandas as pd
 from common.exceptions import (

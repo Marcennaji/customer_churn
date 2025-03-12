@@ -1,3 +1,9 @@
+"""
+This module serves as the main pipeline for the customer churn project, handling data processing, model training, and evaluation.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
 import os
 import pandas as pd
 import joblib

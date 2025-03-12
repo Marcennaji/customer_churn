@@ -1,3 +1,9 @@
+"""
+This module handles the training and hyperparameter tuning of models for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV

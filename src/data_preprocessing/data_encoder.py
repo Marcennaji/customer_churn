@@ -1,8 +1,16 @@
+"""
+This module handles categorical feature encoding based on JSON configuration for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
 from logger_config import logger
 import pandas as pd
-from data_preprocessing.label_encoder import LabelEncoderWrapper
-from data_preprocessing.one_hot_encoder import OneHotEncoderWrapper
-from data_preprocessing.ordinal_encoder import OrdinalEncoderWrapper
+from data_preprocessing.encoder_type import (
+    LabelEncoderWrapper,
+    OneHotEncoderWrapper,
+    OrdinalEncoderWrapper,
+)
 from common.exceptions import DataEncodingError, ConfigValidationError
 
 
@@ -23,8 +31,7 @@ class DataEncoder:
 
         self.df = None
         self.encoding_config = config.get("encoding", {})
-        self.target_column = config.get(
-            "target_column", "churn")  # Default to "churn"
+        self.target_column = config.get("target_column", "churn")  # Default to "churn"
 
     def encode(self, df: pd.DataFrame):
         """
@@ -58,8 +65,7 @@ class DataEncoder:
 
             try:
                 if method == "mean":
-                    df = self._apply_mean_encoding(
-                        df, column, self.target_column)
+                    df = self._apply_mean_encoding(df, column, self.target_column)
                 elif method == "label":
                     df = self._apply_label_encoding(df, column)
                 elif method == "one-hot":
@@ -78,11 +84,7 @@ class DataEncoder:
 
         return df
 
-    def _apply_mean_encoding(
-            self,
-            df: pd.DataFrame,
-            column: str,
-            target_column: str):
+    def _apply_mean_encoding(self, df: pd.DataFrame, column: str, target_column: str):
         """Applies mean (target) encoding to a categorical column."""
         if target_column not in df.columns:
             raise DataEncodingError(
@@ -126,11 +128,7 @@ class DataEncoder:
 
         return df
 
-    def _apply_ordinal_encoding(
-            self,
-            df: pd.DataFrame,
-            column: str,
-            categories: list):
+    def _apply_ordinal_encoding(self, df: pd.DataFrame, column: str, categories: list):
         """Applies ordinal encoding to a categorical column."""
         if not categories:
             raise DataEncodingError(
