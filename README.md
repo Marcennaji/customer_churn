@@ -9,75 +9,82 @@ The proposed solution aim to be flexible, generic, maintenable and easily config
 
 ## Project Architecture
 ```
-─customer_churn
-    │   .pre-commit-config.yaml
-    │   pytest.ini
-    │   README.md
-    │   requirements.txt
-    │   setup.py
-    │
-    ├───config
-    │       data_splitting_profiles.json
-    │       preprocessing_config.json
-    │       training_config.json
-    │
-    ├───data
-    │   ├───processed
-    │   │       bank_data_processed.csv
-    │   │       cleaned_bank_data.csv
-    │   │       encoded_bank_data.csv
-    │   │
-    │   └───raw
-    │           bank_data.csv
-    │
-    ├───images
-    │   ├───eda
-    │   │       bank_bar_marital_status.png
-    │   │       bank_correlation_heatmap.png
-    │   │       bank_histo_age.png
-    │   │       bank_histo_churn.png
-    │   │       bank_kde_total_transaction_count.png
-    │   │
-    │   └───results
-    ├───logs
-    │       customer_churn.log
-    │
-    ├───models
-    │       logistic_model.pkl
-    │       rfc_model.pkl
-    │
-    ├───src
-    │   │   churn_library.py
-    │   │   config_manager.py
-    │   │   logger_config.py
-    │   │
-    │   ├───common
-    │   │       exceptions.py
-    │   │
-    │   ├───data_preprocessing
-    │   │       data_cleaner.py
-    │   │       data_encoder.py
-    │   │       encoder_base.py
-    │   │       label_encoder.py
-    │   │       one_hot_encoder.py
-    │   │       ordinal_encoder.py
-    │   │
-    │   ├───eda
-    │   │       eda_visualizer.py
-    │   │
-    │   ├───models
-    │   │       data_splitter.py
-    │   │       model_evaluator.py
-    │   │       model_trainer.py
-    │   │
-    │   └───notebooks
-    │           churn_notebook.ipynb
-    │           guide.ipynb
-    │
-    └───tests
-            churn_script_logging_and_tests.py
-            test_data_cleaner.py
-            test_data_encoder.py
+- .  - Projet principal
+  - .pre-commit-config.yaml 
+  - .workspace-config.json 
+  - README.md 
+  - config 
+    - data_splitting_profiles.json 
+    - preprocessing_config.json 
+    - training_config.json 
+  - config.json 
+  - data 
+    - processed 
+    - raw 
+      - bank_data.csv 
+  - images 
+  - logs 
+    - customer_churn.log 
+  - models 
+    - LogisticRegression.pkl 
+    - RandomForestClassifier.pkl 
+  - pytest.ini 
+  - requirements.txt 
+  - results 
+    - images 
+      - eda 
+        - bar_chart_marital_status.png 
+        - correlation_heatmap.png 
+        - histogram_age.png 
+        - histogram_churn.png 
+        - kde_total_transaction_count.png 
+      - feature_importance_RandomForestClassifier.png 
+      - roc_curve.png 
+      - shap_RandomForestClassifier.png 
+    - json 
+      - evaluation.json 
+  - src 
+    - churn_library.py  - This module serves as the main pipeline for the customer churn project, handling data processing, model training, and evaluation.
+    - common 
+      - exceptions.py  - This module defines custom exceptions for the customer churn project.
+    - config_manager.py 
+    - data_preprocessing 
+      - data_cleaner.py  - This module handles general data cleaning operations for the customer churn project.
+      - data_encoder.py  - This module handles categorical feature encoding based on JSON configuration for the customer churn project.
+      - encoder_type.py  - This module provides an abstract base class for categorical encoders in the customer churn project.
+    - eda 
+      - eda_visualizer.py  - This module handles Exploratory Data Analysis (EDA) visualizations for the customer churn project.
+    - logger_config.py 
+    - models 
+      - data_splitter.py  - This module handles train-test data splitting based on JSON configuration profiles for the customer churn project.
+      - model_evaluator.py  - This module handles model evaluation, visualization, and feature importance reporting for the customer churn project.
+      - model_trainer.py  - This module handles the training and hyperparameter tuning of models for the customer churn project.
+    - notebooks 
+      - Guide.ipynb 
+      - churn_notebook.ipynb 
+      - churn_notebook.py 
+    - results 
+      - images 
+        - eda 
+          - bar_chart_marital_status.png 
+          - correlation_heatmap.png 
+          - histogram_age.png 
+          - histogram_churn.png 
+          - kde_total_transaction_count.png 
+  - test.md 
+  - tests 
+    - test_data_cleaner.py 
+    - test_data_encoder.py 
+    - test_data_splitter.py 
+    - test_eda_visualizer.py 
+    - test_model_evaluator.py 
+    - test_model_trainer.py 
+  - utils 
+    - generate_doc_tree.py 
+    - pylint_checker.out 
+    - pylint_checker.py 
+    - test.md 
+
 ```
 
 ## Prerequisites
