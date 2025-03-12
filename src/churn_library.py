@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 import joblib
-import matplotlib.pyplot as plt
 
 from data_preprocessing.data_cleaner import DataCleaner
 from eda.eda_visualizer import EDAVisualizer
@@ -11,7 +10,7 @@ from models.model_trainer import ModelTrainer
 from models.model_evaluator import ModelEvaluator
 from config_manager import ConfigManager
 from logger_config import logger
-from common.exceptions import MLPipelineError
+from common.exceptions import MLPipelineError, ModelLoadError
 
 
 # ========================= CONFIGURATION LOADING ========================= #
@@ -74,10 +73,7 @@ def encode_features(df, preprocessing_config):
 
 def split_data(df, splitting_config):
     """Splits the dataset into training and test sets."""
-    return DatasetSplitter(
-        df,
-        config=splitting_config,
-        profile="default").split()
+    return DatasetSplitter(df, config=splitting_config, profile="default").split()
 
 
 # ========================= MODEL TRAINING & EVALUATION ========================= #
@@ -111,7 +107,6 @@ def evaluate_models(models, X_train, X_test, y_train, y_test):
     )
 
     evaluator.plot_roc_curves()
-    evaluator.explain_shap("RandomForestClassifier")
     evaluator.plot_feature_importance(
         "RandomForestClassifier", X_train.columns.tolist()
     )
@@ -129,7 +124,7 @@ def load_models(models_to_load, models_dir):
             loaded_models[model_name] = joblib.load(model_path)
             logger.info(f"Loaded model: {model_name}")
         else:
-            raise FileNotFoundError(f"Model file not found: {model_path}")
+            raise ModelLoadError(f"Model file not found: {model_path}")
     return loaded_models
 
 
@@ -145,14 +140,12 @@ def main():
         config = load_configs()
 
         # Data processing
-        df_cleaned = import_and_clean_data(
-            config["csv_path"], config["preprocessing"])
+        df_cleaned = import_and_clean_data(config["csv_path"], config["preprocessing"])
         perform_eda(df_cleaned)
         df_encoded = encode_features(df_cleaned, config["preprocessing"])
 
         # Data splitting
-        X_train, X_test, y_train, y_test = split_data(
-            df_encoded, config["splitting"])
+        X_train, X_test, y_train, y_test = split_data(df_encoded, config["splitting"])
 
         # Load models if evaluation-only mode is enabled
         if config["eval_only"]:
@@ -167,14 +160,10 @@ def main():
         # Model evaluation
         evaluate_models(models, X_train, X_test, y_train, y_test)
 
-        plt.show()  # display all plots at once (optional, as they have been already saved on disk)
+        logger.info("Pipeline execution completed successfully")
 
     except MLPipelineError as e:
         logger.error(e)
-        print(e)
-    except FileNotFoundError as e:
-        logger.error(f"Model loading error: {e}")
-        print(e)
 
 
 if __name__ == "__main__":

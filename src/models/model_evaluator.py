@@ -1,8 +1,13 @@
+"""
+This module handles model evaluation, visualization, and feature importance reporting for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
+import json
 import matplotlib.pyplot as plt
-import shap
 import joblib
 import numpy as np
-import json
 from sklearn.metrics import classification_report, RocCurveDisplay
 from logger_config import logger
 
@@ -10,14 +15,7 @@ from logger_config import logger
 class ModelEvaluator:
     """Handles model evaluation, visualization, and feature importance reporting."""
 
-    def __init__(
-            self,
-            models,
-            X_train,
-            X_test,
-            y_train,
-            y_test,
-            model_names=None):
+    def __init__(self, models, X_train, X_test, y_train, y_test, model_names=None):
         """
         Initializes the ModelEvaluator.
 
@@ -34,8 +32,7 @@ class ModelEvaluator:
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
-        self.model_names = model_names or {
-            name: name for name in models.keys()}
+        self.model_names = model_names or {name: name for name in models.keys()}
         self.plots = {}
 
     def evaluate_models(self):
@@ -73,23 +70,6 @@ class ModelEvaluator:
 
         ax.set_title("ROC Curves")
         self.plots["roc_curve"] = fig
-
-    def explain_shap(self, model_name):
-        """Generates and stores a SHAP summary plot for a tree-based model."""
-        if model_name not in self.models:
-            raise ValueError(f"⚠ Model '{model_name}' not found in evaluator.")
-
-        model = self.models[model_name]
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(self.X_test)
-
-        shap.summary_plot(
-            shap_values,
-            self.X_test,
-            plot_type="bar",
-            show=False)
-        fig = plt.gcf()
-        self.plots[f"shap_{model_name}"] = fig
 
     def plot_feature_importance(self, model_name, feature_names):
         """Generates and stores a feature importance plot for a tree-based model."""

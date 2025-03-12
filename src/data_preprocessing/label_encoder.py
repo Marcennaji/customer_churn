@@ -1,5 +1,11 @@
-import pandas as pd
+"""
+This module handles label encoding for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
 import logging
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from .encoder_base import EncoderBase
 

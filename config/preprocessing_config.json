@@ -56,16 +56,6 @@
         },
         "card_type": {
             "method": "mean"
-        },
-        "dummy_column": {
-            "method": "ordinal",
-            "categories": [
-                "Less than $40K",
-                "$40K - $60K",
-                "$60K - $80K",
-                "$80K - $120K",
-                "$120K +"
-            ]
         }
     }
 }

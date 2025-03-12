@@ -1,10 +1,9 @@
 import pytest
 import os
 import json
-import numpy as np
 import joblib
 import pandas as pd
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from models.model_evaluator import ModelEvaluator
@@ -33,8 +32,7 @@ def sample_models(sample_data):
 def sample_data():
     """Returns sample feature and target datasets."""
     X_train = pd.DataFrame({"feature1": range(5), "feature2": range(5, 10)})
-    X_test = pd.DataFrame(
-        {"feature1": range(5, 10), "feature2": range(10, 15)})
+    X_test = pd.DataFrame({"feature1": range(5, 10), "feature2": range(10, 15)})
     y_train = pd.Series([0, 1, 0, 1, 0])
     y_test = pd.Series([1, 0, 1, 1, 0])
 
@@ -77,26 +75,6 @@ def test_plot_roc_curves(mock_roc_curve, model_evaluator):
 
 
 # =========================== TEST SHAP EXPLANATION =========================== #
-
-
-@patch("models.model_evaluator.shap.TreeExplainer")
-def test_explain_shap(mock_tree_explainer, model_evaluator):
-    """Test SHAP explanation plot generation."""
-    explainer_mock = MagicMock()
-    explainer_mock.shap_values.return_value = np.random.rand(5, 2)
-    mock_tree_explainer.return_value = explainer_mock
-
-    model_evaluator.explain_shap("RandomForestClassifier")
-    assert "shap_RandomForestClassifier" in model_evaluator.plots
-
-
-def test_explain_shap_invalid_model(model_evaluator):
-    """Test explaining SHAP for a non-existent model raises ValueError."""
-    with pytest.raises(ValueError, match="Model 'InvalidModel' not found"):
-        model_evaluator.explain_shap("InvalidModel")
-
-
-# =========================== TEST FEATURE IMPORTANCE =========================== #
 
 
 def test_plot_feature_importance(model_evaluator):
@@ -167,9 +145,7 @@ def test_load_models(sample_models, tmp_path):
     assert isinstance(
         evaluator.models["RandomForestClassifier"], RandomForestClassifier
     )
-    assert isinstance(
-        evaluator.models["LogisticRegression"],
-        LogisticRegression)
+    assert isinstance(evaluator.models["LogisticRegression"], LogisticRegression)
 
 
 # =========================== TEST JSON RESULTS SAVING =========================== #
@@ -177,10 +153,7 @@ def test_load_models(sample_models, tmp_path):
 
 def test_save_evaluation_results(model_evaluator, tmp_path):
     """Test saving evaluation results to a JSON file."""
-    results = {
-        "RandomForestClassifier": {
-            "test_report": {},
-            "train_report": {}}}
+    results = {"RandomForestClassifier": {"test_report": {}, "train_report": {}}}
     save_path = tmp_path / "evaluation.json"
 
     model_evaluator.save_evaluation_results(results, str(save_path))

@@ -3,26 +3,23 @@ import subprocess
 import argparse
 import re
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-def format_code(file_path):
-    """Formats the given Python file using autopep8."""
-    try:
-        subprocess.run(
-            ["autopep8", "--in-place", "--aggressive", "--aggressive", file_path],
-            check=True,
-            timeout=60,
-        )
-    except subprocess.TimeoutExpired:
-        print(f"Formatting {file_path} timed out.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error formatting {file_path}: {e}")
+# tree directories to analyze recursively
+directories_to_analyze = [
+    os.path.join(script_dir, "../src"),
+    os.path.join(script_dir, "../tests"),
+]
 
 
 def analyze_code(file_path):
-    """Runs pylint on the given Python file and returns its score and output."""
+    """Runs pylint on the given Python file and returns its score and output.
+    We disable the following warnings :
+        - C0103: Invalid variable name (for example : Argument name "X_train" doesn't conform to snake_case naming style)
+    """
     try:
         result = subprocess.run(
-            ["pylint", file_path],
+            ["pylint", file_path, "--disable=C0103"],
             capture_output=True,
             text=True,
             timeout=60,
@@ -84,21 +81,15 @@ def main():
     parser.add_argument(
         "report_file",
         nargs="?",
-        default="code_quality_checker.out",
-        help="Output report file (default: code_quality_checker.out)",
+        default="pylint_checker.out",
+        help="Output report file (default: pylint_checker.out)",
     )
     args = parser.parse_args()
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    root_directories = [
-        os.path.join(script_dir, "../src"),
-        os.path.join(script_dir, "../tests"),
-    ]
 
     report_data = []
     detailed_reports = []
 
-    for root_directory in root_directories:
+    for root_directory in directories_to_analyze:
         print(f"Entering directory {root_directory}...")
         python_files = find_python_files(root_directory)
 
@@ -107,7 +98,6 @@ def main():
                 continue
             print(f"Processing {file}...")
 
-            format_code(file)
             score, detailed_output = analyze_code(file)
 
             relative_file = os.path.relpath(file, script_dir)

@@ -10,8 +10,8 @@ import joblib
 
 # Dictionary mapping model names to their corresponding classes
 MODEL_MAPPING = {
-    "random_forest": RandomForestClassifier,
-    "logistic_regression": LogisticRegression,
+    "RandomForestClassifier": RandomForestClassifier,
+    "LogisticRegression": LogisticRegression,
 }
 
 
@@ -58,7 +58,7 @@ class ModelTrainer:
                 grid_search_config = config.get("grid_search", {})
                 models.append(
                     (
-                        model_class(random_state=self.random_state),
+                        model_class(**hyperparameters, random_state=self.random_state),
                         hyperparameters,
                         grid_search_config,
                     )
@@ -151,6 +151,9 @@ class ModelTrainer:
             model_name = type(model).__name__
 
             try:
+                logger.info(
+                    f"Training {model_name} with hyperparameters: {model.get_params()}"
+                )
                 if param_grid and grid_search_config:
                     logger.info(f"Performing Grid Search for {model_name}...")
                     logger.info(
@@ -161,8 +164,7 @@ class ModelTrainer:
                     )
                     trained_models[model_name] = best_model
                 else:
-                    logger.info(
-                        f"Training {model_name} with default parameters...")
+                    logger.info(f"Training {model_name} without Grid Search...")
                     model.fit(X_train, y_train)
                     trained_models[model_name] = model
 
@@ -192,8 +194,7 @@ class ModelTrainer:
         for model_name, model in trained_models.items():
 
             if model_name not in MODEL_MAPPING:
-                raise ModelTrainingError(
-                    f"Model name '{model_name}' is not handled.")
+                raise ModelTrainingError(f"Model name '{model_name}' is not handled.")
 
             expected_model_class = MODEL_MAPPING[model_name]
             if not isinstance(model, expected_model_class):
@@ -207,5 +208,4 @@ class ModelTrainer:
                 logger.info(f"Saved {model_name} to {model_path}")
             except Exception as e:
                 logger.error(f"Error saving {model_name}: {str(e)}")
-                raise ModelTrainingError(
-                    f"Error saving {model_name}: {str(e)}") from e
+                raise ModelTrainingError(f"Error saving {model_name}: {str(e)}") from e

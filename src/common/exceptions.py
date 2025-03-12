@@ -1,73 +1,81 @@
+"""
+This module defines custom exceptions for the customer churn project.
+Author: Marc Ennaji
+Date: 2023-10-10
+"""
+
+
 class MLPipelineError(Exception):
     """Base class for all exceptions in the ML pipeline."""
 
-    pass
+    def __init__(self, message="An error occurred in the ML pipeline."):
+        super().__init__(message)
 
 
-# Data-related exceptions
+# ================= DATA EXCEPTIONS ================= #
 class DataError(MLPipelineError):
-    pass
+    """Base class for data-related exceptions."""
 
 
 class DataLoadingError(DataError):
-    pass
+    """Raised when there is an error loading data."""
 
 
 class DataValidationError(DataError):
-    pass
+    """Raised when data validation fails."""
 
 
 class DataPreprocessingError(DataError):
-    pass
+    """Raised when data preprocessing encounters an issue."""
 
 
 class DataEncodingError(DataPreprocessingError):
-    pass
+    """Raised when data encoding fails."""
 
 
-# Feature engineering exceptions
-class FeatureEngineeringError(MLPipelineError):
-    pass
+class DataSplittingError(DataError):
+    """Raised when data splitting fails."""
 
 
-# Model-related exceptions
+# ================= FEATURE ENGINEERING ================= #
+class FeatureEngineeringError(DataError):
+    """Raised when feature engineering fails."""
+
+
+# ================= MODEL EXCEPTIONS ================= #
 class ModelError(MLPipelineError):
-    pass
+    """Base class for model-related exceptions."""
 
 
 class ModelTrainingError(ModelError):
-    pass
-
-
-class DataSplittingError(ModelTrainingError):
-    pass
+    """Raised when model training fails."""
 
 
 class ModelEvaluationError(ModelError):
-    pass
+    """Raised when model evaluation fails."""
 
 
 class ModelSaveError(ModelError):
-    pass
+    """Raised when saving a model fails."""
 
 
 class ModelLoadError(ModelError):
-    pass
+    """Raised when loading a model fails."""
 
 
-# Configuration exceptions
+# ================= CONFIGURATION EXCEPTIONS ================= #
 class ConfigError(MLPipelineError):
-    pass
+    """Base class for configuration-related exceptions."""
 
 
 class ConfigLoadingError(ConfigError):
-    pass
+    """Raised when there is an error loading configuration."""
 
 
 class ConfigValidationError(ConfigError):
-    pass
+    """Raised when configuration validation fails."""
 
 
-# Utility exceptions
+# ================= LOGGER EXCEPTIONS ================= #
 class LoggerConfigurationError(MLPipelineError):
-    pass
+    """Raised when configuring the logger fails."""

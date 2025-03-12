@@ -70,8 +70,7 @@ def test_model_trainer_empty_config():
 def test_validate_inputs_valid(model_trainer, sample_data):
     """Test that valid inputs pass validation."""
     X_train, y_train = sample_data
-    model_trainer._validate_inputs(
-        X_train, y_train)  # Should not raise an error
+    model_trainer._validate_inputs(X_train, y_train)  # Should not raise an error
 
 
 @pytest.mark.parametrize(
@@ -103,9 +102,8 @@ def test_grid_search_success(mock_grid_search, model_trainer, sample_data):
     mock_grid_search.return_value = mock_grid_search_instance
 
     best_model = model_trainer._perform_grid_search(
-        RandomForestClassifier(), {
-            "n_estimators": [100]}, {
-            "cv": 3}, X_train, y_train)
+        RandomForestClassifier(), {"n_estimators": [100]}, {"cv": 3}, X_train, y_train
+    )
 
     assert best_model == mock_best_model
     mock_grid_search_instance.fit.assert_called_once()
@@ -140,8 +138,7 @@ def test_train_models(mock_rf_fit, mock_lr_fit, model_trainer, sample_data):
     mock_lr_fit.assert_called_once()
 
 
-@patch.object(RandomForestClassifier, "fit",
-              side_effect=Exception("RF Training Error"))
+@patch.object(RandomForestClassifier, "fit", side_effect=Exception("RF Training Error"))
 def test_train_model_failure(mock_rf_fit, model_trainer, sample_data):
     """Test that a training failure raises ModelTrainingError."""
     X_train, y_train = sample_data
@@ -159,8 +156,8 @@ def test_save_models(tmp_path, model_trainer):
     """Test saving trained models."""
     model_dir = tmp_path / "models"
     trained_models = {
-        "random_forest": RandomForestClassifier(),
-        "logistic_regression": LogisticRegression(),
+        "RandomForestClassifier": RandomForestClassifier(),
+        "LogisticRegression": LogisticRegression(),
     }
 
     model_trainer.save_models(trained_models, str(model_dir))
