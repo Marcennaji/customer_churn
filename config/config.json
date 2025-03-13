@@ -1,5 +1,5 @@
 {
-    "root_directory": "C:/Users/Utilisateur/dev/perso/devops/udacity/customer_churn",
+    "root_directory": "path/to/customer_churn",
     "csv": "data/raw/bank_data.csv",
     "data_dir": "data",
     "models_dir": "models",

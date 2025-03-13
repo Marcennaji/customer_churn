@@ -10,3 +10,4 @@ autopep8==2.1.0
 argparse
 ipython
 pytest
+tk
