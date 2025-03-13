@@ -18,61 +18,57 @@ For implementation details, refer to `src/notebooks/Guide.jpynb`.
 ## 📂 **Project Structure**
 ## Project Structure
 
-📁 **customer_churn/** *(Main project directory)*
-│── 📄 **README.md** *(Project documentation)*
-│── 📄 **requirements.txt** *(Dependencies)*
-│── 📁 **config/** *(Configuration files)*
-│   ├── 📄 **config.json** *(Main configuration file)*
-│   ├── 📄 **preprocessing_config.json**
-│   ├── 📄 **data_splitting_profiles.json**
-│   ├── 📄 **training_config.json**
-│── 📁 **data/** *(Dataset storage)*
-│   ├── 📁 **raw/** *(Original data)*
-│   │   ├── 📄 **bank_data.csv**
-│   ├── 📁 **processed/** *(Preprocessed data)*
-│── 📁 **logs/** *(Logging output)*
-│   ├── 📄 **customer_churn.log**
-│── 📁 **models/** *(Trained models)*
-│   ├── 📄 **LogisticRegression.pkl**
-│   ├── 📄 **RandomForestClassifier.pkl**
-│── 📁 **results/** *(Evaluation results)*
-│   ├── 📁 **images/** *(Plots and visualizations)*
-│   │   ├── 📄 **roc_curve.png**
-│   │   ├── 📄 **shap_RandomForestClassifier.png**
-│   │   ├── 📁 **eda/** *(Exploratory Data Analysis)*
-│   │       ├── 🖼️ **bar_chart_marital_status.png**
-│   │       ├── 🖼️ **correlation_heatmap.png**
-│   ├── 📁 **json/** *(Evaluation metrics)*
-│       ├── 📄 **evaluation.json**
-│── 📁 **src/** *(Source code)*
-│   ├── 🐍 **churn_library.py** *(Main ML pipeline)*
-│   ├── 🐍 **config_manager.py** *(Configuration handler)*
-│   ├── 🐍 **logger_config.py** *(Logging setup)*
-│   ├── 📁 **common/** *(Shared utilities)*
-│   │   ├── 🐍 **exceptions.py** *(Custom exceptions)*
-│   ├── 📁 **data_preprocessing/** *(Data cleaning & encoding)*
-│   │   ├── 🐍 **data_cleaner.py**
-│   │   ├── 🐍 **data_encoder.py**
-│   ├── 📁 **eda/** *(Exploratory Data Analysis)*
-│   │   ├── 🐍 **eda_visualizer.py**
-│   ├── 📁 **models/** *(Model training & evaluation)*
-│   │   ├── 🐍 **data_splitter.py**
-│   │   ├── 🐍 **model_trainer.py**
-│   │   ├── 🐍 **model_evaluator.py**
-│   ├── 📁 **notebooks/** *(Jupyter notebooks, provided as reference)*
-│   │   ├── 📄 **Guide.ipynb**
-│   │   ├── 📄 **churn_notebook.ipynb**
-│── 📁 **tests/** *(Unit tests using pytest)*
-│   ├── 🐍 **test_data_cleaner.py**
-│   ├── 🐍 **test_data_encoder.py**
-│   ├── 🐍 **test_data_splitter.py**
-│   ├── 🐍 **test_data_visualizer.py**
-│   ├── 🐍 **test_model_trainer.py**
-│   ├── 🐍 **test_model_evaluator.py**
-│── 📁 **utils/** *(Utility scripts)*
-│   ├── 🐍 **pylint_checker.py** *(automatically generates a pylint report for all source code)*
+```
+customer_churn/                     Main project directory
+│── README.md                       Project documentation
+│── requirements.txt                Dependencies
+│── config/                         Configuration files
+│   ├── config.json                 Main configuration file
+│   ├── preprocessing_config.json
+│   ├── data_splitting_profiles.json
+│   ├── training_config.json
+│── data/                           Dataset storage
+│   ├── raw/                        Original data
+│   │   ├── bank_data.csv
+│   ├── processed/                  Preprocessed data
+│── logs/                           Logging output
+│   ├── customer_churn.log
+│── models/                         Trained models
+│   ├── LogisticRegression.pkl
+│   ├── RandomForestClassifier.pkl
+│── results/                        Evaluation results
+│   ├── images/                     Plots and visualizations
+│   │   ├── eda/                    Exploratory Data Analysis
+│   ├── json/                       Evaluation metrics
+│── src/                            Source code
+│   ├── churn_library.py            Main ML pipeline
+│   ├── config_manager.py           Configuration handler
+│   ├── logger_config.py            Logging setup
+│   ├── common/                     Shared utilities
+│   │   ├── exceptions.py           Custom exceptions
+│   ├── data_preprocessing/         Data cleaning & encoding
+│   │   ├── data_cleaner.py
+│   │   ├── data_encoder.py
+│   ├── eda/                        Exploratory Data Analysis
+│   │   ├── eda_visualizer.py
+│   ├── models/                     Model training & evaluation
+│   │   ├── data_splitter.py
+│   │   ├── model_trainer.py
+│   │   ├── model_evaluator.py
+│   ├── notebooks/                  Jupyter notebooks, provided as reference
+│   │   ├── Guide.ipynb
+│   │   ├── churn_notebook.ipynb
+│── tests/                          Unit tests using pytest
+│   ├── test_data_cleaner.py
+│   ├── test_data_encoder.py
+│   ├── test_data_splitter.py
+│   ├── test_data_visualizer.py
+│   ├── test_model_trainer.py
+│   ├── test_model_evaluator.py
+│── utils/                          Utility scripts
+│   ├── pylint_checker.py           automatically generates a pylint report for all source code
 
-
+```
 ---
 
 ## ⚙ **Installation**
