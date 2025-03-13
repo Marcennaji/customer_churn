@@ -1,10 +1,11 @@
 """
 This module handles model evaluation, visualization, and feature importance reporting for the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
 import json
+import os
 import matplotlib.pyplot as plt
 import joblib
 import numpy as np
@@ -74,13 +75,13 @@ class ModelEvaluator:
     def plot_feature_importance(self, model_name, feature_names):
         """Generates and stores a feature importance plot for a tree-based model."""
         if model_name not in self.models:
-            raise ValueError(f"⚠ Model '{model_name}' not found in evaluator.")
+            raise ValueError("⚠ Model '%s' not found in evaluator." % model_name)
 
         model = self.models[model_name]
 
         if not hasattr(model, "feature_importances_"):
             raise ValueError(
-                f"⚠ Model '{model_name}' does not support feature importance."
+                "⚠ Model '%s' does not support feature importance." % model_name
             )
 
         importances = model.feature_importances_
@@ -88,7 +89,7 @@ class ModelEvaluator:
 
         fig, ax = plt.subplots(figsize=(20, 5))
         ax.set_title(
-            f"Feature Importance - {self.model_names.get(model_name, model_name)}"
+            "Feature Importance - %s" % self.model_names.get(model_name, model_name)
         )
         ax.set_ylabel("Importance")
         ax.bar(range(len(feature_names)), importances[indices])
@@ -99,14 +100,12 @@ class ModelEvaluator:
 
     def save_plots(self, save_dir: str):
         """Saves all stored plots to the specified directory."""
-        import os
-
         os.makedirs(save_dir, exist_ok=True)
 
         for name, fig in self.plots.items():
             file_path = os.path.join(save_dir, f"{name}.png")
             fig.savefig(file_path, bbox_inches="tight", dpi=300)
-            logger.info(f"Plot saved: {file_path}")
+            logger.info("Plot saved: %s", file_path)
 
     def show_plots(self):
         """Displays all stored plots."""
@@ -115,20 +114,16 @@ class ModelEvaluator:
 
     def save_models(self, save_dir="./models"):
         """Saves all models to disk."""
-        import os
-
         os.makedirs(save_dir, exist_ok=True)
 
         for name, model in self.models.items():
-            model_path = f"{save_dir}/{name}.pkl"
+            model_path = os.path.join(save_dir, f"{name}.pkl")
             joblib.dump(model, model_path)
 
     def load_models(self, load_dir="./models"):
         """Loads models from disk."""
-        import os
-
         for name in self.models.keys():
-            model_path = f"{load_dir}/{name}.pkl"
+            model_path = os.path.join(load_dir, f"{name}.pkl")
             if os.path.exists(model_path):
                 self.models[name] = joblib.load(model_path)
 
@@ -136,5 +131,9 @@ class ModelEvaluator:
         self, results, save_file_path="evaluation_results.json"
     ):
         """Saves evaluation results to a JSON file."""
-        with open(save_file_path, "w") as f:
+        with open(save_file_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=4)
+
+    def get_model_names(self):
+        """Returns the mapping of model names."""
+        return self.model_names

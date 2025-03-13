@@ -1,3 +1,9 @@
+"""
+This module configures the project logger with file and stream handlers.
+Author: Marc Ennaji
+Date: 2025-03-13
+"""
+
 import logging
 import os
 from common.exceptions import LoggerConfigurationError
@@ -20,18 +26,17 @@ def setup_logger():
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - [%(module)s] %(message)s",
             handlers=[
-                logging.FileHandler(LOG_FILE_PATH, mode="a"),  # Append mode
+                logging.FileHandler(LOG_FILE_PATH, mode="w"),
                 logging.StreamHandler(),
             ],
         )
 
-        logger = logging.getLogger("ProjectLogger")
-        logger.info("Logger successfully configured.")
-        return logger
+        log = logging.getLogger("ProjectLogger")
+        log.info("Logger successfully configured.")
+        return log
 
     except Exception as e:
-        raise LoggerConfigurationError(
-            f"Error configuring logger: {str(e)}") from e
+        raise LoggerConfigurationError(f"Error configuring logger: {str(e)}") from e
 
 
 # Initialize logger

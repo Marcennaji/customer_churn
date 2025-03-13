@@ -1,13 +1,13 @@
 """
 This module serves as the main pipeline for the customer churn project, handling data processing, model training, and evaluation.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
 import os
+import argparse
 import pandas as pd
 import joblib
-import argparse
 
 from data_preprocessing.data_cleaner import DataCleaner
 from eda.eda_visualizer import EDAVisualizer
@@ -18,7 +18,6 @@ from models.model_evaluator import ModelEvaluator
 from config_manager import ConfigManager
 from logger_config import logger
 from common.exceptions import MLPipelineError, ModelLoadError
-
 
 # ========================= CONFIGURATION LOADING ========================= #
 
@@ -111,14 +110,15 @@ def evaluate_models(models, config, X_train, X_test, y_train, y_test):
 
     reports = evaluator.evaluate_models()
     evaluator.save_evaluation_results(
-        reports, save_file_path=config["results_dir"] + "/json/evaluation.json"
+        reports,
+        save_file_path=os.path.join(config["results_dir"], "json/evaluation.json"),
     )
 
     evaluator.plot_roc_curves()
     evaluator.plot_feature_importance(
         "RandomForestClassifier", X_train.columns.tolist()
     )
-    evaluator.save_plots(save_dir=config["results_dir"] + "/images")
+    evaluator.save_plots(save_dir=os.path.join(config["results_dir"], "images"))
 
     return evaluator
 
@@ -130,7 +130,7 @@ def load_models(models_to_load, models_dir):
         model_path = os.path.join(models_dir, f"{model_name}.pkl")
         if os.path.exists(model_path):
             loaded_models[model_name] = joblib.load(model_path)
-            logger.info(f"Loaded model: {model_name}")
+            logger.info("Loaded model: %s", model_name)
         else:
             raise ModelLoadError(f"Model file not found: {model_path}")
     return loaded_models
@@ -139,13 +139,13 @@ def load_models(models_to_load, models_dir):
 # ========================= MAIN PIPELINE ========================= #
 
 
-def main(config_file_path):
+def main(config_file_path_arg):
     """
     Main pipeline execution function.
     """
     try:
         # Load configurations
-        config = load_configs(config_file_path)
+        config = load_configs(config_file_path_arg)
 
         # Data processing
         df_cleaned = import_and_clean_data(config["csv_path"], config["preprocessing"])
@@ -171,7 +171,7 @@ def main(config_file_path):
         logger.info("Pipeline execution completed successfully")
 
     except MLPipelineError as e:
-        logger.error(e)
+        logger.error("%s", e)
 
 
 if __name__ == "__main__":
@@ -181,5 +181,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_file_path = os.path.abspath(os.path.join(script_dir, args.config))
-    main(config_file_path)
+    config_file_path_arg = os.path.abspath(os.path.join(script_dir, args.config))
+    main(config_file_path_arg)

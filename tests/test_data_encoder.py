@@ -1,3 +1,9 @@
+"""
+This module contains unit tests for the DataEncoder class, which handles encoding of categorical variables.
+Author: Marc Ennaji
+Date: 2025-03-01
+"""
+
 import pytest
 import pandas as pd
 from src.data_preprocessing.data_encoder import DataEncoder
@@ -5,7 +11,8 @@ from common.exceptions import ConfigValidationError, DataEncodingError
 
 
 @pytest.fixture
-def sample_dataframe():
+def sample_dataframe_fixture():
+    """Fixture to provide a sample DataFrame for testing."""
     data = {
         "gender": ["Male", "Female", "Female"],
         "education": ["Graduate", "High School", "Graduate"],
@@ -18,7 +25,8 @@ def sample_dataframe():
 
 
 @pytest.fixture
-def sample_config():
+def sample_config_fixture():
+    """Fixture to provide a sample configuration for testing."""
     return {
         "encoding": {
             "gender": {"method": "label"},
@@ -35,25 +43,29 @@ def sample_config():
 
 
 def test_init_with_invalid_config():
+    """Test initialization with an invalid configuration."""
     with pytest.raises(ConfigValidationError):
         DataEncoder(config="invalid_config")
 
 
 def test_init_with_none_config():
+    """Test initialization with None configuration."""
     with pytest.raises(ConfigValidationError):
         DataEncoder(config=None)
 
 
 def test_encode_with_empty_dataframe():
+    """Test encoding with an empty DataFrame."""
     encoder = DataEncoder(config={})
     empty_df = pd.DataFrame()
     with pytest.raises(DataEncodingError):
         encoder.encode(empty_df)
 
 
-def test_encode_with_valid_dataframe(sample_dataframe, sample_config):
-    encoder = DataEncoder(config=sample_config)
-    encoded_df = encoder.encode(sample_dataframe)
+def test_encode_with_valid_dataframe(sample_dataframe_fixture, sample_config_fixture):
+    """Test encoding with a valid DataFrame and configuration."""
+    encoder = DataEncoder(config=sample_config_fixture)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
     assert "gender" in encoded_df.columns
     assert (
         "education_High School" in encoded_df.columns
@@ -63,45 +75,48 @@ def test_encode_with_valid_dataframe(sample_dataframe, sample_config):
     assert "card_type_churn" in encoded_df.columns
 
 
-def test_label_encoding(sample_dataframe):
+def test_label_encoding(sample_dataframe_fixture):
+    """Test label encoding for a specific column."""
     config = {"encoding": {"gender": {"method": "label"}}}
     encoder = DataEncoder(config=config)
-    encoded_df = encoder.encode(sample_dataframe)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
     assert "gender" in encoded_df.columns
     assert pd.api.types.is_integer_dtype(encoded_df["gender"])
 
 
-def test_one_hot_encoding(sample_dataframe):
+def test_one_hot_encoding(sample_dataframe_fixture):
+    """Test one-hot encoding for a specific column."""
     config = {"encoding": {"education": {"method": "one-hot"}}}
     encoder = DataEncoder(config=config)
-    encoded_df = encoder.encode(sample_dataframe)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
     assert (
         "education_High School" in encoded_df.columns
     )  # we don't test education_Graduate because we use drop_first=True
 
 
-def test_ordinal_encoding(sample_dataframe):
+def test_ordinal_encoding(sample_dataframe_fixture):
+    """Test ordinal encoding for a specific column with categories."""
     config = {
         "encoding": {
-            "marital_status": {
-                "method": "ordinal",
-                "categories": [
-                    "Single",
-                    "Married"]}}}
+            "marital_status": {"method": "ordinal", "categories": ["Single", "Married"]}
+        }
+    }
     encoder = DataEncoder(config=config)
-    encoded_df = encoder.encode(sample_dataframe)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
     assert "marital_status" in encoded_df.columns
     assert pd.api.types.is_float_dtype(encoded_df["marital_status"])
 
 
-def test_ordinal_encoding_no_categories(sample_dataframe):
+def test_ordinal_encoding_no_categories(sample_dataframe_fixture):
+    """Test ordinal encoding for a specific column without categories."""
     config = {"encoding": {"marital_status": {"method": "ordinal"}}}
     encoder = DataEncoder(config=config)
     with pytest.raises(DataEncodingError):
-        encoder.encode(sample_dataframe)
+        encoder.encode(sample_dataframe_fixture)
 
 
-def test_mean_encoding(sample_dataframe):
+def test_mean_encoding(sample_dataframe_fixture):
+    """Test mean encoding for specific columns."""
     config = {
         "encoding": {
             "income_bracket": {"method": "mean"},
@@ -110,19 +125,21 @@ def test_mean_encoding(sample_dataframe):
         "target_column": "churn",
     }
     encoder = DataEncoder(config=config)
-    encoded_df = encoder.encode(sample_dataframe)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
     assert "income_bracket_churn" in encoded_df.columns
     assert "card_type_churn" in encoded_df.columns
 
 
-def test_apply_unknown_encoding_method(sample_dataframe):
+def test_apply_unknown_encoding_method(sample_dataframe_fixture):
+    """Test applying an unknown encoding method."""
     config = {"encoding": {"gender": {"method": "unknown"}}}
     encoder = DataEncoder(config=config)
     with pytest.raises(DataEncodingError):
-        encoder.encode(sample_dataframe)
+        encoder.encode(sample_dataframe_fixture)
 
 
-def test_encode_with_metadata_column(sample_dataframe):
+def test_encode_with_metadata_column(sample_dataframe_fixture):
+    """Test encoding with metadata in the configuration."""
     config = {
         "encoding": {
             "_metadata": {"description": "Metadata for encoding"},
@@ -130,23 +147,25 @@ def test_encode_with_metadata_column(sample_dataframe):
         }
     }
     encoder = DataEncoder(config=config)
-    encoded_df = encoder.encode(sample_dataframe)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
     assert "gender" in encoded_df.columns
     assert pd.api.types.is_integer_dtype(encoded_df["gender"])
 
 
-def test_encode_with_no_encoding_config(sample_dataframe):
+def test_encode_with_no_encoding_config(sample_dataframe_fixture):
+    """Test encoding with no encoding configuration."""
     config = {"encoding": {}}
     encoder = DataEncoder(config=config)
-    encoded_df = encoder.encode(sample_dataframe)
-    assert encoded_df.equals(sample_dataframe)
+    encoded_df = encoder.encode(sample_dataframe_fixture)
+    assert encoded_df.equals(sample_dataframe_fixture)
 
 
-def test_encode_with_invalid_target_column(sample_dataframe):
+def test_encode_with_invalid_target_column(sample_dataframe_fixture):
+    """Test encoding with an invalid target column."""
     config = {
         "encoding": {"income_bracket": {"method": "mean"}},
         "target_column": "non_existent_target",
     }
     encoder = DataEncoder(config=config)
     with pytest.raises(DataEncodingError):
-        encoder.encode(sample_dataframe)
+        encoder.encode(sample_dataframe_fixture)

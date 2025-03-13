@@ -1,13 +1,13 @@
 """
 This module provides an abstract base class for categorical encoders in the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
+import logging
 from abc import ABC, abstractmethod
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder, LabelEncoder
-import logging
 
 
 class EncoderBase(ABC):
@@ -16,6 +16,10 @@ class EncoderBase(ABC):
     @abstractmethod
     def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
         """Encodes a specific column in the dataset."""
+
+    def get_encoder_info(self):
+        """Returns information about the encoder."""
+        return f"Encoder: {self.__class__.__name__}"
 
 
 class OneHotEncoderWrapper(EncoderBase):
@@ -33,9 +37,9 @@ class OneHotEncoderWrapper(EncoderBase):
 
             df = df.drop(columns=[column]).reset_index(drop=True)
             df = pd.concat([df, encoded_df], axis=1)
-            logging.info(f"Applied One-Hot Encoding to '{column}'.")
+            logging.info("Applied One-Hot Encoding to '%s'.", column)
         else:
-            logging.warning(f"Column '{column}' not found in DataFrame.")
+            logging.warning("Column '%s' not found in DataFrame.", column)
         return df
 
 
@@ -54,10 +58,12 @@ class OrdinalEncoderWrapper(EncoderBase):
         if column in df.columns:
             df[column] = self.encoder.fit_transform(df[[column]])
             logging.info(
-                f"Applied Ordinal Encoding to '{column}' with categories: {self.categories}."
+                "Applied Ordinal Encoding to '%s' with categories: %s.",
+                column,
+                self.categories,
             )
         else:
-            logging.warning(f"Column '{column}' not found in DataFrame.")
+            logging.warning("Column '%s' not found in DataFrame.", column)
         return df
 
 
@@ -70,7 +76,7 @@ class LabelEncoderWrapper(EncoderBase):
     def encode(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
         if column in df.columns:
             df[column] = self.encoder.fit_transform(df[column])
-            logging.info(f"Applied Label Encoding to '{column}'.")
+            logging.info("Applied Label Encoding to '%s'.", column)
         else:
-            logging.warning(f"Column '{column}' not found in DataFrame.")
+            logging.warning("Column '%s' not found in DataFrame.", column)
         return df

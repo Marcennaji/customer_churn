@@ -1,7 +1,7 @@
 """
 This module handles the training and hyperparameter tuning of models for the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
 from sklearn.ensemble import RandomForestClassifier

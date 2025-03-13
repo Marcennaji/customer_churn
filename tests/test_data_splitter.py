@@ -1,3 +1,9 @@
+"""
+Test module for the DatasetSplitter class in the models module.
+Author: Marc Ennaji
+Date: 2025-03-01
+"""
+
 import pytest
 import pandas as pd
 from models.data_splitter import DatasetSplitter
@@ -59,10 +65,7 @@ def test_missing_feature_columns(sample_dataframe, valid_config):
     invalid_config["default"]["feature_columns"] = ["non_existent_column"]
 
     with pytest.raises(DataSplittingError, match="Missing feature columns"):
-        DatasetSplitter(
-            sample_dataframe,
-            invalid_config,
-            profile="default").split()
+        DatasetSplitter(sample_dataframe, invalid_config, profile="default").split()
 
 
 def test_missing_target_column(sample_dataframe, valid_config):
@@ -71,10 +74,7 @@ def test_missing_target_column(sample_dataframe, valid_config):
     invalid_config["default"]["target_column"] = "non_existent_target"
 
     with pytest.raises(DataSplittingError, match="Target column .* not found"):
-        DatasetSplitter(
-            sample_dataframe,
-            invalid_config,
-            profile="default").split()
+        DatasetSplitter(sample_dataframe, invalid_config, profile="default").split()
 
 
 def test_invalid_profile(sample_dataframe, valid_config):
@@ -82,10 +82,7 @@ def test_invalid_profile(sample_dataframe, valid_config):
     with pytest.raises(
         ConfigValidationError, match="Profile 'invalid_profile' not found"
     ):
-        DatasetSplitter(
-            sample_dataframe,
-            valid_config,
-            profile="invalid_profile")
+        DatasetSplitter(sample_dataframe, valid_config, profile="invalid_profile")
 
 
 def test_empty_dataframe(valid_config):
@@ -98,19 +95,14 @@ def test_empty_dataframe(valid_config):
 
 def test_invalid_target_type_conversion(sample_dataframe, valid_config):
     """Test error handling when target type conversion fails."""
-    sample_dataframe["churn"] = ["yes", "no",
-                                 "yes", "no", "yes"]  # Non-integer values
+    sample_dataframe["churn"] = ["yes", "no", "yes", "no", "yes"]  # Non-integer values
     invalid_config = valid_config.copy()
-    # Force integer conversion
-    invalid_config["default"]["target_type"] = "int"
+    invalid_config["default"]["target_type"] = "int"  # Force integer conversion
 
     with pytest.raises(
         DataSplittingError, match="Could not convert target column .* to type int"
     ):
-        DatasetSplitter(
-            sample_dataframe,
-            invalid_config,
-            profile="default").split()
+        DatasetSplitter(sample_dataframe, invalid_config, profile="default").split()
 
 
 def test_invalid_config_format(sample_dataframe):

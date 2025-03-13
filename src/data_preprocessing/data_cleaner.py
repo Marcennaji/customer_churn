@@ -1,7 +1,7 @@
 """
 This module handles general data cleaning operations for the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
 from logger_config import logger
@@ -48,48 +48,50 @@ class DataCleaner:
             )
 
         try:
-            self._drop_unnamed_first_column(df)
-            self._drop_columns(df, drop_columns)
-            self._rename_columns(df)
-            self._replace_categorical_values(df)
-            self._log_dataset_info(df)
+            self.drop_unnamed_first_column(df)
+            self.drop_columns(df, drop_columns)
+            self.rename_columns(df)
+            self.replace_categorical_values(df)
+            self.log_dataset_info(df)
 
             if fill_strategy:
-                self._fill_missing_values(
+                self.fill_missing_values(
                     df, strategy=fill_strategy, fill_value=fill_value
                 )
 
             if remove_empty:
-                self._remove_empty_rows(df)
+                self.remove_empty_rows(df)
 
             logger.info("Data cleaning completed successfully.")
             return df
         except Exception as e:
-            raise DataPreprocessingError(f"Error during data cleaning: {str(e)}") from e
+            raise DataPreprocessingError(
+                "Error during data cleaning: %s", str(e)
+            ) from e
 
-    def _drop_unnamed_first_column(self, df):
+    def drop_unnamed_first_column(self, df):
         """Drops the first column if it is unnamed."""
         if not df.empty and df.columns[0].startswith("Unnamed"):
-            logger.info(f"Dropping unnamed first column: {df.columns[0]}")
+            logger.info("Dropping unnamed first column: %s", df.columns[0])
             df.drop(df.columns[0], axis=1, inplace=True)
 
-    def _drop_columns(self, df, drop_columns=None):
+    def drop_columns(self, df, drop_columns=None):
         """Drops specified columns from the dataset."""
         if drop_columns:
-            valid_columns = self._check_missing_columns(df, drop_columns)
+            valid_columns = self.check_missing_columns(df, drop_columns)
             if valid_columns:
                 df.drop(columns=valid_columns, inplace=True)
-                logger.info(f"Dropped columns: {valid_columns}")
+                logger.info("Dropped columns: %s", valid_columns)
 
-    def _rename_columns(self, df):
+    def rename_columns(self, df):
         """Renames dataset columns based on the JSON mapping."""
-        valid_columns = self._check_missing_columns(df, self.column_mapping.keys())
+        valid_columns = self.check_missing_columns(df, self.column_mapping.keys())
         columns_to_rename = {col: self.column_mapping[col] for col in valid_columns}
         if columns_to_rename:
-            logger.info(f"Renaming columns: {columns_to_rename}")
+            logger.info("Renaming columns: %s", columns_to_rename)
             df.rename(columns=columns_to_rename, inplace=True)
 
-    def _fill_missing_values(self, df, strategy="mean", fill_value=None):
+    def fill_missing_values(self, df, strategy="mean", fill_value=None):
         """
         Fills missing values based on a given strategy.
 
@@ -105,31 +107,31 @@ class DataCleaner:
         numerical_cols = df.select_dtypes(include=["number"]).columns
 
         if strategy == "mean":
-            self._fill_mean(df, numerical_cols)
+            self.fill_mean(df, numerical_cols)
         elif strategy == "median":
-            self._fill_median(df, numerical_cols)
+            self.fill_median(df, numerical_cols)
         elif strategy == "mode":
-            self._fill_mode(df, numerical_cols)
+            self.fill_mode(df, numerical_cols)
         elif strategy == "constant":
             if fill_value is None:
                 raise DataPreprocessingError(
                     "fill_value is required when strategy='constant'."
                 )
-            self._fill_constant(df, fill_value)
+            self.fill_constant(df, fill_value)
         else:
             raise DataPreprocessingError(
-                f"Invalid fill strategy '{strategy}'. Choose from 'mean', 'median', 'mode', or 'constant'."
+                f"Invalid fill strategy {strategy}. Choose from 'mean', 'median', 'mode', or 'constant'."
             )
 
-    def _fill_mean(self, df, numerical_cols):
+    def fill_mean(self, df, numerical_cols):
         df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].mean())
         logger.info("Filled missing numerical values using mean.")
 
-    def _fill_median(self, df, numerical_cols):
+    def fill_median(self, df, numerical_cols):
         df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].median())
         logger.info("Filled missing numerical values using median.")
 
-    def _fill_mode(self, df, numerical_cols):
+    def fill_mode(self, df, numerical_cols):
         mode_values = (
             df[numerical_cols].dropna().mode().iloc[0]
             if not df[numerical_cols].mode().empty
@@ -138,11 +140,11 @@ class DataCleaner:
         df[numerical_cols] = df[numerical_cols].fillna(mode_values)
         logger.info("Filled missing numerical values using mode.")
 
-    def _fill_constant(self, df, fill_value):
+    def fill_constant(self, df, fill_value):
         df.fillna(fill_value, inplace=True)
-        logger.info(f"Filled missing values with constant value: {fill_value}")
+        logger.info("Filled missing values with constant value: %s", fill_value)
 
-    def _replace_categorical_values(self, df):
+    def replace_categorical_values(self, df):
         """Replaces categorical values in the dataset based on predefined mappings."""
         if df.empty:
             raise DataPreprocessingError(
@@ -152,11 +154,11 @@ class DataCleaner:
         for column, replacements in self.value_replacements.items():
             if column in df.columns:
                 df[column] = df[column].replace(replacements)
-                logger.info(f"Replaced values in column '{column}': {replacements}")
+                logger.info("Replaced values in column '%s': %s", column, replacements)
             else:
-                logger.warning(f"Column '{column}' not found. Skipping replacements.")
+                logger.warning("Column '%s' not found. Skipping replacements.", column)
 
-    def _remove_empty_rows(self, df):
+    def remove_empty_rows(self, df):
         """Removes rows where all values are NaN."""
         if df.empty:
             raise DataPreprocessingError(
@@ -167,9 +169,9 @@ class DataCleaner:
         df.dropna(how="all", inplace=True)
         num_rows_after = len(df)
         removed_count = num_rows_before - num_rows_after
-        logger.info(f"Removed {removed_count} completely empty rows.")
+        logger.info("Removed %d completely empty rows.", removed_count)
 
-    def _log_dataset_info(self, df):
+    def log_dataset_info(self, df):
         """Logs dataset shape, missing values per column, and missing rows."""
         if df is not None:
             num_rows, num_cols = df.shape
@@ -178,19 +180,19 @@ class DataCleaner:
                 missing_values_per_column > 0
             ]
 
-            logger.info(f"Dataset Shape: {num_rows} rows, {num_cols} columns")
+            logger.info("Dataset Shape: %d rows, %d columns", num_rows, num_cols)
             if not columns_with_missing_values.empty:
                 logger.info(
-                    "Columns with Missing Values:\n" + str(columns_with_missing_values)
+                    "Columns with Missing Values:\n%s", columns_with_missing_values
                 )
             else:
                 logger.info("No columns with missing values.")
 
-    def _check_missing_columns(self, df, columns):
+    def check_missing_columns(self, df, columns):
         """Checks if any columns are missing before performing operations."""
         missing_cols = [col for col in columns if col not in df.columns]
         if missing_cols:
             logger.warning(
-                f"Some specified columns were not found in the dataset: {missing_cols}"
+                "Some specified columns were not found in the dataset: %s", missing_cols
             )
         return [col for col in columns if col in df.columns]

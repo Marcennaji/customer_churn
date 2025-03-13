@@ -1,7 +1,8 @@
 """
-This module handles categorical feature encoding based on JSON configuration for the customer churn project.
+This module handles categorical feature encoding based on JSON configuration
+for the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
 from logger_config import logger
@@ -24,14 +25,25 @@ class DataEncoder:
         Args:
             config (dict): Encoding configuration.
         """
+        self.validate_config(config)
+        self.df = None
+        self.encoding_config = config.get("encoding", {})
+        self.target_column = config.get("target_column", "churn")  # Default to "churn"
+
+    def validate_config(self, config):
+        """
+        Validates the encoding configuration.
+
+        Args:
+            config (dict): Encoding configuration.
+
+        Raises:
+            ConfigValidationError: If the configuration is invalid.
+        """
         if not isinstance(config, dict):
             raise ConfigValidationError(
                 "Invalid encoding configuration. Expected a dictionary."
             )
-
-        self.df = None
-        self.encoding_config = config.get("encoding", {})
-        self.target_column = config.get("target_column", "churn")  # Default to "churn"
 
     def encode(self, df: pd.DataFrame):
         """
@@ -57,8 +69,9 @@ class DataEncoder:
 
             if column not in df.columns:
                 logger.warning(
-                    f"Column '{column}' not found in dataset. Ignoring column."
+                    "Column '%s' not found in dataset. Ignoring column.", column
                 )
+                continue
 
             method = encoding_info.get("method")
             categories = encoding_info.get("categories", [])
@@ -94,7 +107,7 @@ class DataEncoder:
         try:
             mean_encoding = df.groupby(column)[target_column].mean().to_dict()
             df[f"{column}_{target_column}"] = df[column].map(mean_encoding)
-            logger.info(f"Applied mean encoding to column '{column}'")
+            logger.info("Applied mean encoding to column '%s'", column)
         except Exception as e:
             raise DataEncodingError(
                 f"Mean encoding failed for column '{column}': {str(e)}"
@@ -107,7 +120,7 @@ class DataEncoder:
         try:
             encoder = LabelEncoderWrapper()
             df = encoder.encode(df, column)
-            logger.info(f"Applied label encoding to column '{column}'")
+            logger.info("Applied label encoding to column '%s'", column)
         except Exception as e:
             raise DataEncodingError(
                 f"Label encoding failed for column '{column}': {str(e)}"
@@ -120,7 +133,7 @@ class DataEncoder:
         try:
             encoder = OneHotEncoderWrapper()
             df = encoder.encode(df, column)
-            logger.info(f"Applied one-hot encoding to column '{column}'")
+            logger.info("Applied one-hot encoding to column '%s'", column)
         except Exception as e:
             raise DataEncodingError(
                 f"One-hot encoding failed for column '{column}': {str(e)}"
@@ -138,7 +151,7 @@ class DataEncoder:
         try:
             encoder = OrdinalEncoderWrapper(categories)
             df = encoder.encode(df, column)
-            logger.info(f"Applied ordinal encoding to column '{column}'")
+            logger.info("Applied ordinal encoding to column '%s'", column)
         except Exception as e:
             raise DataEncodingError(
                 f"Ordinal encoding failed for column '{column}': {str(e)}"

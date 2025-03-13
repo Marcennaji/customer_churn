@@ -1,13 +1,13 @@
 """
 This module handles Exploratory Data Analysis (EDA) visualizations for the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
-import matplotlib.pyplot as plt
-import seaborn as sns
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from logger_config import logger
 
 
@@ -49,7 +49,7 @@ class EDAVisualizer:
                 bins=bins, color=color, edgecolor="black", alpha=0.75, ax=ax
             )
 
-        ax.set_title(f"Histogram of {column}", fontsize=14, fontweight="bold")
+        ax.set_title("Histogram of %s" % column, fontsize=14, fontweight="bold")
         ax.set_xlabel(column, fontsize=12)
         ax.set_ylabel("Frequency", fontsize=12)
         ax.grid(axis="y", linestyle="--", alpha=0.7)
@@ -67,7 +67,7 @@ class EDAVisualizer:
         value_counts.plot(
             kind="bar", color=colors, edgecolor="black", alpha=0.85, ax=ax
         )
-        ax.set_title(f"Bar Chart of {column}", fontsize=14, fontweight="bold")
+        ax.set_title("Bar Chart of %s" % column, fontsize=14, fontweight="bold")
         ax.set_xlabel(column, fontsize=12)
         ax.set_ylabel("Proportion" if normalize else "Count", fontsize=12)
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
@@ -87,7 +87,7 @@ class EDAVisualizer:
             alpha=0.75,
             ax=ax,
         )
-        ax.set_title(f"KDE Plot of {column}", fontsize=14, fontweight="bold")
+        ax.set_title("KDE Plot of %s" % column, fontsize=14, fontweight="bold")
         ax.set_xlabel(column, fontsize=12)
         ax.set_ylabel("Density", fontsize=12)
         ax.grid(axis="y", linestyle="--", alpha=0.7)
@@ -120,7 +120,7 @@ class EDAVisualizer:
         for name, fig in self.plots.items():
             file_path = os.path.join(output_dir, f"{name}.png")
             fig.savefig(file_path, bbox_inches="tight", dpi=300)
-            logger.info(f"Plot saved: {file_path}")
+            logger.info("Plot saved: %s", file_path)
 
     def show_plots(self):
         """Displays all stored plots."""

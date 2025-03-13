@@ -1,12 +1,11 @@
 """
 This module handles train-test data splitting based on JSON configuration profiles for the customer churn project.
 Author: Marc Ennaji
-Date: 2023-10-10
+Date: 2025-03-01
 """
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
 from common.exceptions import DataSplittingError, ConfigValidationError
 
 
@@ -34,36 +33,43 @@ class DatasetSplitter:
             )
 
         self.df = df
-        self.profile = profile
         self.config = config
 
-        self._apply_profile()
+        self.profile_config = self.apply_profile(profile)
 
-    def _apply_profile(self):
-        """Applies the selected profile's settings."""
-        if self.profile not in self.config:
+    def apply_profile(self, profile: str):
+        """Applies the selected profile's settings and returns the configuration."""
+        if profile not in self.config:
             raise ConfigValidationError(
-                f"Profile '{self.profile}' not found in config file."
+                f"Profile '{profile}' not found in config file."
             )
-
+        self.profile = profile
         profile_config = self.config[self.profile]
 
         try:
-            self.feature_columns = profile_config["feature_columns"]
-            self.target_column = profile_config["target_column"]
-            self.target_type = profile_config.get("target_type", None)
-            self.test_size = profile_config.get("test_size", 0.3)
-            self.random_state = profile_config.get("random_state", 42)
+            feature_columns = profile_config["feature_columns"]
+            target_column = profile_config["target_column"]
+            target_type = profile_config.get("target_type", None)
+            test_size = profile_config.get("test_size", 0.3)
+            random_state = profile_config.get("random_state", 42)
 
-            if not self.feature_columns or not isinstance(self.feature_columns, list):
+            if not feature_columns or not isinstance(feature_columns, list):
                 raise ConfigValidationError(
                     f"Invalid feature_columns list in profile '{self.profile}'."
                 )
 
-            if not isinstance(self.target_column, str) or not self.target_column:
+            if not isinstance(target_column, str) or not target_column:
                 raise ConfigValidationError(
                     f"Invalid target_column in profile '{self.profile}'."
                 )
+
+            return {
+                "feature_columns": feature_columns,
+                "target_column": target_column,
+                "target_type": target_type,
+                "test_size": test_size,
+                "random_state": random_state,
+            }
 
         except KeyError as e:
             raise ConfigValidationError(
@@ -83,32 +89,39 @@ class DatasetSplitter:
         try:
             # Ensure all required columns exist in the dataset
             missing_features = [
-                col for col in self.feature_columns if col not in self.df.columns
+                col
+                for col in self.profile_config["feature_columns"]
+                if col not in self.df.columns
             ]
             if missing_features:
                 raise DataSplittingError(
                     f"Missing feature columns in dataset: {missing_features}"
                 )
 
-            if self.target_column not in self.df.columns:
+            if self.profile_config["target_column"] not in self.df.columns:
                 raise DataSplittingError(
-                    f"Target column '{self.target_column}' not found in dataset."
+                    f"Target column '{self.profile_config['target_column']}' "
+                    "not found in dataset."
                 )
 
-            X = self.df[self.feature_columns]
-            y = self.df[self.target_column]
+            X = self.df[self.profile_config["feature_columns"]]
+            y = self.df[self.profile_config["target_column"]]
 
             # Convert y to the specified target type
-            if self.target_type:
+            if self.profile_config["target_type"]:
                 try:
-                    y = y.astype(self.target_type)
-                except ValueError:
+                    y = y.astype(self.profile_config["target_type"])
+                except ValueError as exc:
                     raise DataSplittingError(
-                        f"Could not convert target column '{self.target_column}' to type {self.target_type}."
-                    )
+                        f"Could not convert target column '{self.profile_config['target_column']}' "
+                        f"to type {self.profile_config['target_type']}."
+                    ) from exc
 
             return train_test_split(
-                X, y, test_size=self.test_size, random_state=self.random_state
+                X,
+                y,
+                test_size=self.profile_config["test_size"],
+                random_state=self.profile_config["random_state"],
             )
 
         except Exception as e:

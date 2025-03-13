@@ -1,3 +1,9 @@
+"""
+Module for managing configuration loading from a JSON file with logging.
+Author: Marc Ennaji
+Date: 2025-03-13
+"""
+
 import os
 import json
 from logger_config import logger
@@ -24,7 +30,7 @@ class ConfigManager:
             logger.error("Config file not found: %s", self.config_file_path)
             raise ConfigLoadingError(f"Config file not found: {self.config_file_path}")
 
-        with open(self.config_file_path, "r") as file:
+        with open(self.config_file_path, "r", encoding="utf-8") as file:
             config = json.load(file)
             logger.info("Config file loaded from '%s'.", self.config_file_path)
             return config
@@ -35,7 +41,7 @@ class ConfigManager:
             logger.error("JSON file not found: %s", file_path)
             raise ConfigLoadingError(f"JSON file not found: {file_path}")
 
-        with open(file_path, "r") as file:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
             logger.info("JSON data loaded from '%s'.", file_path)
             return data
