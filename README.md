@@ -77,37 +77,31 @@ customer_churn/                     Main project directory
 git clone https://github.com/Marcennaji/customer_churn.git
 cd customer_churn
 ```
-### Setting Up a Virtual Environment (Recommended)
+### 👅 **2. Setting Up a Virtual Environment (Recommended)**
 
 To ensure a consistent and isolated development environment, it is recommended to use a **Python virtual environment** (`venv`). This prevents conflicts with global Python packages and ensures compatibility across different systems.
 
-### **Check Python Version**
+#### **Check Python Version**
 This project is tested with **Python 3.10+**. You can check your version by running:
 ```bash
 python --version
 ```
 If your version is older, consider installing **Python 3.10 or later** from [python.org](https://www.python.org/downloads/).
 
-### **Create and Activate a Virtual Environment**
-#### **On macOS & Linux**
+#### **Create and Activate a Virtual Environment**
+##### **On macOS & Linux**
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
-#### **On Windows**
+##### **On Windows**
 ```powershell
 python -m venv venv
 venv\Scripts\activate
 ```
 Once activated, you should see `(venv)` in your terminal prompt, indicating that you are inside the virtual environment.
 
-### **Install Dependencies**
-After activating the virtual environment, install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### **Deactivating the Virtual Environment**
+##### **Deactivating the Virtual Environment**
 To exit the virtual environment, simply run:
 ```bash
 deactivate
@@ -115,19 +109,18 @@ deactivate
 
 Using a virtual environment ensures a clean, conflict-free workspace for developing and running the project. 🚀
 
-
-### 📦 **Install dependencies**
+### 👅 **3. Install Dependencies**
+After activating the virtual environment, install the required dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-
 ---
 
-## 🚀 **Usage**
+## 🚀 **ML pipeline usage**
 ### **1. Configure the pipeline**
 - Open `config/config.json` in the root directory  
 - Set the `"root_directory"` to your dataset location  
-- To enable **evaluation-only mode**, if you alreday have trained models in your `models` directory, set:
+- To enable **evaluation-only mode**, if you already have trained models in your `models` directory, set:
   ```json
   "eval_only": true
   ```
