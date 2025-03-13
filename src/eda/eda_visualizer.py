@@ -49,7 +49,7 @@ class EDAVisualizer:
                 bins=bins, color=color, edgecolor="black", alpha=0.75, ax=ax
             )
 
-        ax.set_title("Histogram of %s" % column, fontsize=14, fontweight="bold")
+        ax.set_title(f"Histogram of {column}", fontsize=14, fontweight="bold")
         ax.set_xlabel(column, fontsize=12)
         ax.set_ylabel("Frequency", fontsize=12)
         ax.grid(axis="y", linestyle="--", alpha=0.7)
@@ -67,7 +67,7 @@ class EDAVisualizer:
         value_counts.plot(
             kind="bar", color=colors, edgecolor="black", alpha=0.85, ax=ax
         )
-        ax.set_title("Bar Chart of %s" % column, fontsize=14, fontweight="bold")
+        ax.set_title(f"Bar Chart of {column}", fontsize=14, fontweight="bold")
         ax.set_xlabel(column, fontsize=12)
         ax.set_ylabel("Proportion" if normalize else "Count", fontsize=12)
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
@@ -87,7 +87,7 @@ class EDAVisualizer:
             alpha=0.75,
             ax=ax,
         )
-        ax.set_title("KDE Plot of %s" % column, fontsize=14, fontweight="bold")
+        ax.set_title(f"KDE Plot of {column}", fontsize=14, fontweight="bold")
         ax.set_xlabel(column, fontsize=12)
         ax.set_ylabel("Density", fontsize=12)
         ax.grid(axis="y", linestyle="--", alpha=0.7)

@@ -4,14 +4,15 @@ Author: Marc Ennaji
 Date: 2025-03-01
 """
 
+import os
+import joblib
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
+
 from common.exceptions import ModelTrainingError, ConfigValidationError
 from logger_config import logger
-import pandas as pd
-import os
-import joblib
 
 
 # Dictionary mapping model names to their corresponding classes
@@ -71,7 +72,7 @@ class ModelTrainer:
                 )
             else:
                 logger.warning(
-                    f"Model '{model_name}' not found in training config. Skipping."
+                    "Model '%s' not found in training config. Skipping.", model_name
                 )
 
         if not models:
@@ -81,7 +82,7 @@ class ModelTrainer:
 
         return models
 
-    def _validate_inputs(self, X_train, y_train):
+    def validate_inputs(self, X_train, y_train):
         """
         Validates the input training data.
 
@@ -101,7 +102,7 @@ class ModelTrainer:
         if y_train.empty:
             raise ModelTrainingError("y_train is empty.")
 
-    def _perform_grid_search(
+    def perform_grid_search(
         self, model, param_grid, grid_search_config, X_train, y_train
     ):
         """
@@ -121,7 +122,6 @@ class ModelTrainer:
             ModelTrainingError: If grid search fails.
         """
         try:
-
             grid_search = GridSearchCV(
                 estimator=model,
                 param_grid=param_grid,
@@ -149,7 +149,7 @@ class ModelTrainer:
             ModelTrainingError: If training fails.
         """
         # Validate inputs
-        self._validate_inputs(X_train, y_train)
+        self.validate_inputs(X_train, y_train)
 
         trained_models = {}
 
@@ -158,25 +158,27 @@ class ModelTrainer:
 
             try:
                 logger.info(
-                    f"Training {model_name} with hyperparameters: {model.get_params()}"
+                    "Training %s with hyperparameters: %s",
+                    model_name,
+                    model.get_params(),
                 )
                 if param_grid and grid_search_config:
-                    logger.info(f"Performing Grid Search for {model_name}...")
+                    logger.info("Performing Grid Search for %s...", model_name)
                     logger.info(
-                        f"Grid Search parameters for {model_name}: {param_grid}"
+                        "Grid Search parameters for %s: %s", model_name, param_grid
                     )
-                    best_model = self._perform_grid_search(
+                    best_model = self.perform_grid_search(
                         model, param_grid, grid_search_config, X_train, y_train
                     )
                     trained_models[model_name] = best_model
                 else:
-                    logger.info(f"Training {model_name} without Grid Search...")
+                    logger.info("Training %s without Grid Search...", model_name)
                     model.fit(X_train, y_train)
                     trained_models[model_name] = model
 
-                logger.info(f"Successfully trained {model_name}.")
+                logger.info("Successfully trained %s.", model_name)
             except Exception as e:
-                logger.error(f"Error training {model_name}: {str(e)}")
+                logger.error("Error training %s: %s", model_name, str(e))
                 raise ModelTrainingError(
                     f"Error training {model_name}: {str(e)}"
                 ) from e
@@ -198,7 +200,6 @@ class ModelTrainer:
             os.makedirs(directory)
 
         for model_name, model in trained_models.items():
-
             if model_name not in MODEL_MAPPING:
                 raise ModelTrainingError(f"Model name '{model_name}' is not handled.")
 
@@ -211,7 +212,7 @@ class ModelTrainer:
             model_path = os.path.join(directory, f"{model_name}.pkl")
             try:
                 joblib.dump(model, model_path)
-                logger.info(f"Saved {model_name} to {model_path}")
+                logger.info("Saved %s to %s", model_name, model_path)
             except Exception as e:
-                logger.error(f"Error saving {model_name}: {str(e)}")
+                logger.error("Error saving %s: %s", model_name, str(e))
                 raise ModelTrainingError(f"Error saving {model_name}: {str(e)}") from e

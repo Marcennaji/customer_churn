@@ -2,14 +2,19 @@
 This module contains unit tests for the ModelEvaluator class, which handles model evaluation, visualization, and reporting.
 Author: Marc Ennaji
 Date: 2025-03-01
+
+Disabled the W0621 pylint warning, as it triggers a false positive when using fixtures (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint) (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint)
+
 """
 
+# pylint: disable=W0621
+
 import os
+from unittest.mock import patch
 import json
 import joblib
 import pytest
 import pandas as pd
-from unittest.mock import patch
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from models.model_evaluator import ModelEvaluator

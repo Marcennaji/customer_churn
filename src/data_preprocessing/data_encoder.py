@@ -5,8 +5,9 @@ Author: Marc Ennaji
 Date: 2025-03-01
 """
 
-from logger_config import logger
 import pandas as pd
+from logger_config import logger
+
 from data_preprocessing.encoder_type import (
     LabelEncoderWrapper,
     OneHotEncoderWrapper,

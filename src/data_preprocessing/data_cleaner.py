@@ -4,8 +4,9 @@ Author: Marc Ennaji
 Date: 2025-03-01
 """
 
-from logger_config import logger
 import pandas as pd
+from logger_config import logger
+
 from common.exceptions import (
     DataValidationError,
     DataPreprocessingError,
@@ -65,9 +66,7 @@ class DataCleaner:
             logger.info("Data cleaning completed successfully.")
             return df
         except Exception as e:
-            raise DataPreprocessingError(
-                "Error during data cleaning: %s", str(e)
-            ) from e
+            raise DataPreprocessingError(f"Error during data cleaning: {e}") from e
 
     def drop_unnamed_first_column(self, df):
         """Drops the first column if it is unnamed."""
@@ -124,14 +123,17 @@ class DataCleaner:
             )
 
     def fill_mean(self, df, numerical_cols):
+        """Fills missing numerical values with the mean."""
         df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].mean())
         logger.info("Filled missing numerical values using mean.")
 
     def fill_median(self, df, numerical_cols):
+        """Fills missing numerical values with the median."""
         df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].median())
         logger.info("Filled missing numerical values using median.")
 
     def fill_mode(self, df, numerical_cols):
+        """Fills missing numerical values with the mode."""
         mode_values = (
             df[numerical_cols].dropna().mode().iloc[0]
             if not df[numerical_cols].mode().empty
@@ -141,6 +143,7 @@ class DataCleaner:
         logger.info("Filled missing numerical values using mode.")
 
     def fill_constant(self, df, fill_value):
+        """Fills missing values with a constant value."""
         df.fillna(fill_value, inplace=True)
         logger.info("Filled missing values with constant value: %s", fill_value)
 

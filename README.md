@@ -128,30 +128,12 @@ cat logs/customer_churn.log
 
 To ensure high-quality and maintainable code, this project follows strict formatting and linting guidelines.
 
-### Formatting
-
 Instead of `autopep8` and `pylint`, this project uses `black` and `ruff` for code formatting and linting, as configured in `.pre-commit-config.yaml`. The reasons for this choice:
-
 - **black**: Provides consistent, opinionated formatting, ensuring uniformity across all scripts.
 - **ruff**: A fast Python linter and formatter, which also provides additional checks and optimizations beyond `black`.
 
-#### autopep8 vs. black
-
-Both autopep8 and black format Python code, but:
-autopep8: Focuses on fixing PEP 8 violations (less opinionated).
-black: Enforces a strict, opinionated style (makes all code look uniform).
-black is the better choice for standardization and team projects.
-
-#### pylint vs. ruff
-
-Both pylint and ruff check for code style and quality, but:
-pylint: More thorough but slow and sometimes overly strict.
-ruff: Faster, supports many pylint rules, and can auto-fix some issues.
-ruff is a modern alternative to pylint, often preferred for speed.
-
-However, for those who want a pylint report, a dedicated script, `pylint_checker.py`, is provided to analyze all Python files recursively and generate both a summary and a detailed report.
+However, for those who still want a pylint report, a dedicated script, `pylint_checker.py`, is provided as a convenience tool, to analyze all Python files recursively and generate both a summary and a detailed report.
 Simply run:
-
 ```bash
 python utils/pylint_checker.py
 ```

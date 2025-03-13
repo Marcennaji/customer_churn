@@ -2,12 +2,17 @@
 This module contains unit tests for the ModelTrainer class, which handles model training and saving.
 Author: Marc Ennaji
 Date: 2025-03-01
+
+Disabled the W0621 pylint warning, as it triggers a false positive when using fixtures (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint)
+
 """
 
+# pylint: disable=W0621
+
 import os
+from unittest.mock import patch, MagicMock
 import pytest
 import pandas as pd
-from unittest.mock import patch, MagicMock
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from common.exceptions import ModelTrainingError, ConfigValidationError
@@ -75,9 +80,7 @@ def test_model_trainer_empty_config():
 def test_validate_inputs_valid(model_trainer_fixture, sample_data_fixture):
     """Test that valid inputs pass validation."""
     X_train, y_train = sample_data_fixture
-    model_trainer_fixture._validate_inputs(
-        X_train, y_train
-    )  # Should not raise an error
+    model_trainer_fixture.validate_inputs(X_train, y_train)  # Should not raise an error
 
 
 @pytest.mark.parametrize(
@@ -92,7 +95,7 @@ def test_validate_inputs_valid(model_trainer_fixture, sample_data_fixture):
 def test_validate_inputs_invalid(model_trainer_fixture, invalid_X, invalid_y):
     """Test that invalid inputs raise ModelTrainingError."""
     with pytest.raises(ModelTrainingError):
-        model_trainer_fixture._validate_inputs(invalid_X, invalid_y)
+        model_trainer_fixture.validate_inputs(invalid_X, invalid_y)
 
 
 # =========================== TEST MODEL TRAINING =========================== #
@@ -110,7 +113,7 @@ def test_grid_search_success(
     mock_grid_search_instance.best_estimator_ = mock_best_model
     mock_grid_search.return_value = mock_grid_search_instance
 
-    best_model = model_trainer_fixture._perform_grid_search(
+    best_model = model_trainer_fixture.perform_grid_search(
         RandomForestClassifier(), {"n_estimators": [100]}, {"cv": 3}, X_train, y_train
     )
 
@@ -127,7 +130,7 @@ def test_grid_search_failure(
     mock_grid_search.side_effect = Exception("Grid search error")
 
     with pytest.raises(ModelTrainingError, match="Error during grid search"):
-        model_trainer_fixture._perform_grid_search(
+        model_trainer_fixture.perform_grid_search(
             RandomForestClassifier(),
             {"n_estimators": [100]},
             {"cv": 3},
@@ -152,7 +155,7 @@ def test_train_models(
 
 
 @patch.object(RandomForestClassifier, "fit", side_effect=Exception("RF Training Error"))
-def test_train_model_failure(mock_rf_fit, model_trainer_fixture, sample_data_fixture):
+def test_train_model_failure(_, model_trainer_fixture, sample_data_fixture):
     """Test that a training failure raises ModelTrainingError."""
     X_train, y_train = sample_data_fixture
 

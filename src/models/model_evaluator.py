@@ -75,13 +75,13 @@ class ModelEvaluator:
     def plot_feature_importance(self, model_name, feature_names):
         """Generates and stores a feature importance plot for a tree-based model."""
         if model_name not in self.models:
-            raise ValueError("⚠ Model '%s' not found in evaluator." % model_name)
+            raise ValueError(f"Model '{model_name}' not found in evaluator.")
 
         model = self.models[model_name]
 
         if not hasattr(model, "feature_importances_"):
             raise ValueError(
-                "⚠ Model '%s' does not support feature importance." % model_name
+                f"Model '{model_name}' does not support feature importance."
             )
 
         importances = model.feature_importances_
@@ -89,7 +89,7 @@ class ModelEvaluator:
 
         fig, ax = plt.subplots(figsize=(20, 5))
         ax.set_title(
-            "Feature Importance - %s" % self.model_names.get(model_name, model_name)
+            f"Feature Importance - {self.model_names.get(model_name, model_name)}"
         )
         ax.set_ylabel("Importance")
         ax.bar(range(len(feature_names)), importances[indices])

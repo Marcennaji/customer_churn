@@ -1,8 +1,13 @@
 """
 Test module for the DataCleaner class in the data_preprocessing module.
-Author: Your Name
-Date: YYYY-MM-DD
+Author: Marc Ennaji
+Date: 2025-03-01
+
+Disabled the W0621 pylint warning, as it triggers a false positive when using fixtures (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint) (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint)
+
 """
+
+# pylint: disable=W0621
 
 import pytest
 import pandas as pd

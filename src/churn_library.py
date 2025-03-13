@@ -10,9 +10,9 @@ import pandas as pd
 import joblib
 
 from data_preprocessing.data_cleaner import DataCleaner
+from data_preprocessing.data_encoder import DataEncoder
 from eda.eda_visualizer import EDAVisualizer
 from models.data_splitter import DatasetSplitter
-from data_preprocessing.data_encoder import DataEncoder
 from models.model_trainer import ModelTrainer
 from models.model_evaluator import ModelEvaluator
 from config_manager import ConfigManager
@@ -64,7 +64,7 @@ def perform_eda(df):
         "bank_correlation_heatmap.png": ("plot_correlation_heatmap", {}),
     }
 
-    for filename, (method, kwargs) in plots.items():
+    for _, (method, kwargs) in plots.items():
         getattr(eda, method)(**kwargs)
 
     eda.save_plots("./results/images/eda")
@@ -180,6 +180,6 @@ if __name__ == "__main__":
         "--config", type=str, required=True, help="Path to the config.json file"
     )
     args = parser.parse_args()
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_file_path_arg = os.path.abspath(os.path.join(script_dir, args.config))
-    main(config_file_path_arg)
+    caller_dir = os.getcwd()
+    config_file = os.path.abspath(os.path.join(caller_dir, args.config))
+    main(config_file)

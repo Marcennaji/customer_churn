@@ -2,13 +2,18 @@
 This module contains unit tests for the EDAVisualizer class, which handles EDA visualizations.
 Author: Marc Ennaji
 Date: 2025-03-01
+
+Disabled the W0621 pylint warning, as it triggers a false positive when using fixtures (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint) (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint)
+
 """
 
+# pylint: disable=W0621
+
+from unittest.mock import patch
 import pytest
 import pandas as pd
 import matplotlib.pyplot as plt
-from unittest.mock import patch
-from src.eda.eda_visualizer import EDAVisualizer
+from eda.eda_visualizer import EDAVisualizer
 
 
 @pytest.fixture

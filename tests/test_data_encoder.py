@@ -2,11 +2,16 @@
 This module contains unit tests for the DataEncoder class, which handles encoding of categorical variables.
 Author: Marc Ennaji
 Date: 2025-03-01
+
+Disabled the W0621 pylint warning, as it triggers a false positive when using fixtures (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint) (see https://stackoverflow.com/questions/46089480/pytest-fixtures-redefining-name-from-outer-scope-pylint)
+
 """
+
+# pylint: disable=W0621
 
 import pytest
 import pandas as pd
-from src.data_preprocessing.data_encoder import DataEncoder
+from data_preprocessing.data_encoder import DataEncoder
 from common.exceptions import ConfigValidationError, DataEncodingError
 
 
