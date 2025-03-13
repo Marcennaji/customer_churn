@@ -118,8 +118,10 @@ pip install -r requirements.txt
 
 ## 🚀 **ML pipeline usage**
 ### **1. Configure the pipeline**
-- Open `config/config.json` in the root directory  
-- Set the `"root_directory"` to your dataset location  
+- Open `config/config.json` and set your root directory:
+```json
+  "root_directory": "path/to/customer_churn"
+  ``` 
 - To enable **evaluation-only mode**, if you already have trained models in your `models` directory, set:
   ```json
   "eval_only": true
