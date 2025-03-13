@@ -100,6 +100,10 @@ py -3.10 -m venv venv
 venv\Scripts\activate
 ```
 Once activated, you should see `(venv)` in your terminal prompt, indicating that you are inside the virtual environment.
+Verify that it uses python 3.10.
+```bash
+python --version
+```
 
 ##### **Deactivating the Virtual Environment**
 To exit the virtual environment, simply run:
