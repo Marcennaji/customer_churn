@@ -19,7 +19,6 @@ For implementation details, refer to `src/notebooks/Guide.jpynb`.
 ```
 ## Project Structure
 
-```
 📁 **customer_churn/** *(Main project directory)*
 │── 📄 **README.md** *(Project documentation)*
 │── 📄 **requirements.txt** *(Dependencies)*
@@ -73,9 +72,6 @@ For implementation details, refer to `src/notebooks/Guide.jpynb`.
 │   ├── 🐍 **test_model_evaluator.py**
 │── 📁 **utils/** *(Utility scripts)*
 │   ├── 🐍 **pylint_checker.py** *(automatically generates a pylint report for all source code)*
-```
-
-
 
 
 ```
