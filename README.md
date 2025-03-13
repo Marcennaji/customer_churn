@@ -105,12 +105,6 @@ Verify that it uses python 3.10.
 python --version
 ```
 
-##### **Deactivating the Virtual Environment**
-To exit the virtual environment, simply run:
-```bash
-deactivate
-```
-
 Using a virtual environment ensures a clean, conflict-free workspace for developing and running the project. 🚀
 
 ### 👅 **3. Install Dependencies**
