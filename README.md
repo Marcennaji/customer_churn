@@ -82,11 +82,11 @@ cd customer_churn
 To ensure a consistent and isolated development environment, it is recommended to use a **Python virtual environment** (`venv`). This prevents conflicts with global Python packages and ensures compatibility across different systems.
 
 #### **Check Python Version**
-This project is tested with **Python 3.10+**. You can check your version by running:
+This project is tested with **Python 3.10**. You can check your version by running:
 ```bash
 python --version
 ```
-If your version is older, consider installing **Python 3.10 or later** from [python.org](https://www.python.org/downloads/).
+If it’s not Python 3.10, install it from [python.org](https://www.python.org/downloads/) or using your system’s package manager. 
 
 #### **Create and Activate a Virtual Environment**
 ##### **On macOS & Linux**
@@ -96,7 +96,7 @@ source venv/bin/activate
 ```
 ##### **On Windows**
 ```powershell
-python -m venv venv
+py -3.10 -m venv venv
 venv\Scripts\activate
 ```
 Once activated, you should see `(venv)` in your terminal prompt, indicating that you are inside the virtual environment.
