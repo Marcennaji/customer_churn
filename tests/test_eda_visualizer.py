@@ -12,8 +12,11 @@ Disabled the W0621 pylint warning, as it triggers a false positive when using fi
 from unittest.mock import patch
 import pytest
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from eda.eda_visualizer import EDAVisualizer
+
+matplotlib.use("Agg")
 
 
 @pytest.fixture
