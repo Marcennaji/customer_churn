@@ -147,7 +147,7 @@ cat logs/customer_churn.log
 ```
 ### Unit tests detailed logs (including all method calls tracing)
 ```bash
-cat logs/customer_churn_test.log
+cat logs/customer_churn_tests.log
 ```
 - Logs include **both info and error messages**
 
