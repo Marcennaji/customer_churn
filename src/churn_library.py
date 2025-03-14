@@ -16,8 +16,9 @@ from models.data_splitter import DatasetSplitter
 from models.model_trainer import ModelTrainer
 from models.model_evaluator import ModelEvaluator
 from config_manager import ConfigManager
-from logger_config import logger
 from common.exceptions import MLPipelineError, ModelLoadError
+from logger_config import get_logger
+
 
 # ========================= CONFIGURATION LOADING ========================= #
 
@@ -130,7 +131,7 @@ def load_models(models_to_load, models_dir):
         model_path = os.path.join(models_dir, f"{model_name}.pkl")
         if os.path.exists(model_path):
             loaded_models[model_name] = joblib.load(model_path)
-            logger.info("Loaded model: %s", model_name)
+            get_logger().info("Loaded model: %s", model_name)
         else:
             raise ModelLoadError(f"Model file not found: {model_path}")
     return loaded_models
@@ -168,10 +169,10 @@ def main(config_file_path_arg):
         # Model evaluation
         evaluate_models(models, config, X_train, X_test, y_train, y_test)
 
-        logger.info("Pipeline execution completed successfully")
+        get_logger().info("Pipeline execution completed successfully")
 
     except MLPipelineError as e:
-        logger.error("%s", e)
+        get_logger().error("%s", e)
 
 
 if __name__ == "__main__":

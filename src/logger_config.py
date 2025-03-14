@@ -1,43 +1,53 @@
-"""
-This module configures the project logger with file and stream handlers.
-Author: Marc Ennaji
-Date: 2025-03-13
-"""
-
 import logging
 import os
 from common.exceptions import LoggerConfigurationError
 
-LOG_FILE_PATH = os.path.join(
+DEFAULT_LOG_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "../logs/customer_churn.log"
 )
 
+_logger = None  # Holds the logger instance
 
-def setup_logger():
+
+def setup_logger(log_file=None):
     """Configures the project logger with file and stream handlers."""
-    try:
-        # Ensure the log directory exists
-        log_dir = os.path.dirname(LOG_FILE_PATH)
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir, exist_ok=True)
+    global _logger
 
-        # Configure logging
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - [%(module)s] %(message)s",
-            handlers=[
-                logging.FileHandler(LOG_FILE_PATH, mode="w"),
-                logging.StreamHandler(),
-            ],
+    try:
+        log_file = log_file or DEFAULT_LOG_FILE
+        log_dir = os.path.dirname(log_file)
+        os.makedirs(log_dir, exist_ok=True)
+
+        logger = logging.getLogger("CustomerChurn")
+        logger.setLevel(logging.INFO)
+
+        # Remove existing handlers to prevent duplicates
+        if logger.hasHandlers():
+            logger.handlers.clear()
+
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - [%(module)s] %(message)s"
         )
 
-        log = logging.getLogger("ProjectLogger")
-        log.info("Logger successfully configured.")
-        return log
+        file_handler = logging.FileHandler(log_file, mode="w")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+        logger.info(f"Logger initialized. Writing logs to: {log_file}")
+
+        _logger = logger  # Store the configured logger
+        return _logger
 
     except Exception as e:
         raise LoggerConfigurationError(f"Error configuring logger: {str(e)}") from e
 
 
-# Initialize logger
-logger = setup_logger()
+def get_logger():
+    """Returns the configured logger, initializing it if necessary."""
+    if _logger is None:
+        return setup_logger()  # use default log file
+    return _logger

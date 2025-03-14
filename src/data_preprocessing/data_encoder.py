@@ -6,7 +6,6 @@ Date: 2025-03-01
 """
 
 import pandas as pd
-from logger_config import logger
 
 from data_preprocessing.encoder_type import (
     LabelEncoderWrapper,
@@ -14,6 +13,7 @@ from data_preprocessing.encoder_type import (
     OrdinalEncoderWrapper,
 )
 from common.exceptions import DataEncodingError, ConfigValidationError
+from logger_config import get_logger
 
 
 class DataEncoder:
@@ -26,6 +26,7 @@ class DataEncoder:
         Args:
             config (dict): Encoding configuration.
         """
+        get_logger().info("Initializing DataEncoder")
         self.validate_config(config)
         self.df = None
         self.encoding_config = config.get("encoding", {})
@@ -41,10 +42,11 @@ class DataEncoder:
         Raises:
             ConfigValidationError: If the configuration is invalid.
         """
+        get_logger().info("Validating encoding configuration")
         if not isinstance(config, dict):
-            raise ConfigValidationError(
-                "Invalid encoding configuration. Expected a dictionary."
-            )
+            message = "Invalid encoding configuration. Expected a dictionary."
+            get_logger().error(message)
+            raise ConfigValidationError(message)
 
     def encode(self, df: pd.DataFrame):
         """
@@ -59,17 +61,18 @@ class DataEncoder:
         Raises:
             DataEncodingError: If encoding fails.
         """
+        get_logger().info("Encoding dataset")
         if df is None or df.empty:
-            raise DataEncodingError(
-                "Input DataFrame is empty or None. Cannot perform encoding."
-            )
+            message = "Input DataFrame is empty or None. Cannot perform encoding."
+            get_logger().error(message)
+            raise DataEncodingError(message)
 
         for column, encoding_info in self.encoding_config.items():
             if column == "_metadata":
                 continue
 
             if column not in df.columns:
-                logger.warning(
+                get_logger().warning(
                     "Column '%s' not found in dataset. Ignoring column.", column
                 )
                 continue
@@ -87,75 +90,83 @@ class DataEncoder:
                 elif method == "ordinal":
                     df = self._apply_ordinal_encoding(df, column, categories)
                 else:
-                    raise DataEncodingError(
+                    message = (
                         f"Unknown encoding method '{method}' for column '{column}'."
                     )
+                    get_logger().error(message)
+                    raise DataEncodingError(message)
 
             except Exception as e:
-                raise DataEncodingError(
-                    f"Failed to encode column '{column}': {str(e)}"
-                ) from e
+                message = f"Failed to encode column '{column}': {str(e)}"
+                get_logger().error(message)
+                raise DataEncodingError(message) from e
 
         return df
 
     def _apply_mean_encoding(self, df: pd.DataFrame, column: str, target_column: str):
         """Applies mean (target) encoding to a categorical column."""
+        get_logger().info("Applying mean encoding to column: %s", column)
         if target_column not in df.columns:
-            raise DataEncodingError(
-                f"Target column '{target_column}' not found for mean encoding of '{column}'."
-            )
+            message = f"Target column '{target_column}' not found for mean encoding of '{column}'."
+            get_logger().error(message)
+            raise DataEncodingError(message)
 
         try:
             mean_encoding = df.groupby(column)[target_column].mean().to_dict()
             df[f"{column}_{target_column}"] = df[column].map(mean_encoding)
-            logger.info("Applied mean encoding to column '%s'", column)
+            get_logger().info("Applied mean encoding to column '%s'", column)
         except Exception as e:
-            raise DataEncodingError(
-                f"Mean encoding failed for column '{column}': {str(e)}"
-            ) from e
+            message = f"Mean encoding failed for column '{column}': {str(e)}"
+            get_logger().error(message)
+            raise DataEncodingError(message) from e
 
         return df
 
     def _apply_label_encoding(self, df: pd.DataFrame, column: str):
         """Applies label encoding to a categorical column."""
+        get_logger().info("Applying label encoding to column: %s", column)
         try:
             encoder = LabelEncoderWrapper()
             df = encoder.encode(df, column)
-            logger.info("Applied label encoding to column '%s'", column)
+            get_logger().info("Applied label encoding to column '%s'", column)
         except Exception as e:
-            raise DataEncodingError(
-                f"Label encoding failed for column '{column}': {str(e)}"
-            ) from e
+            message = f"Label encoding failed for column '{column}': {str(e)}"
+            get_logger().error(message)
+            raise DataEncodingError(message) from e
 
         return df
 
     def _apply_one_hot_encoding(self, df: pd.DataFrame, column: str):
         """Applies one-hot encoding to a categorical column."""
+        get_logger().info("Applying one-hot encoding to column: %s", column)
         try:
             encoder = OneHotEncoderWrapper()
             df = encoder.encode(df, column)
-            logger.info("Applied one-hot encoding to column '%s'", column)
+            get_logger().info("Applied one-hot encoding to column '%s'", column)
         except Exception as e:
-            raise DataEncodingError(
-                f"One-hot encoding failed for column '{column}': {str(e)}"
-            ) from e
+            message = f"One-hot encoding failed for column '{column}': {str(e)}"
+            get_logger().error(message)
+            raise DataEncodingError(message) from e
 
         return df
 
     def _apply_ordinal_encoding(self, df: pd.DataFrame, column: str, categories: list):
         """Applies ordinal encoding to a categorical column."""
+        get_logger().info("Applying ordinal encoding to column: %s", column)
         if not categories:
-            raise DataEncodingError(
+            message = (
                 f"No categories specified for ordinal encoding in column '{column}'."
             )
+            get_logger().error(message)
+            raise DataEncodingError(message)
 
         try:
             encoder = OrdinalEncoderWrapper(categories)
             df = encoder.encode(df, column)
-            logger.info("Applied ordinal encoding to column '%s'", column)
+            get_logger().info("Applied ordinal encoding to column '%s'", column)
         except Exception as e:
-            raise DataEncodingError(
-                f"Ordinal encoding failed for column '{column}': {str(e)}"
-            ) from e
+            message = f"Ordinal encoding failed for column '{column}': {str(e)}"
+            get_logger().error(message)
+            raise DataEncodingError(message) from e
 
         return df

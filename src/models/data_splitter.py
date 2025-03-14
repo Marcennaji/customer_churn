@@ -7,6 +7,7 @@ Date: 2025-03-01
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from common.exceptions import DataSplittingError, ConfigValidationError
+from logger_config import get_logger
 
 
 class DatasetSplitter:
@@ -24,13 +25,16 @@ class DatasetSplitter:
         Raises:
             ConfigValidationError: If the profile is missing or invalid.
         """
+        get_logger().info("Initializing DatasetSplitter")
         if not isinstance(config, dict):
-            raise ConfigValidationError("Invalid configuration. Expected a dictionary.")
+            message = "Invalid configuration. Expected a dictionary."
+            get_logger().error(message)
+            raise ConfigValidationError(message)
 
         if df is None or df.empty:
-            raise DataSplittingError(
-                "Input DataFrame is empty or None. Cannot perform splitting."
-            )
+            message = "Input DataFrame is empty or None. Cannot perform splitting."
+            get_logger().error(message)
+            raise DataSplittingError(message)
 
         self.df = df
         self.config = config
@@ -39,10 +43,11 @@ class DatasetSplitter:
 
     def apply_profile(self, profile: str):
         """Applies the selected profile's settings and returns the configuration."""
+        get_logger().info("Applying profile: %s", profile)
         if profile not in self.config:
-            raise ConfigValidationError(
-                f"Profile '{profile}' not found in config file."
-            )
+            message = "Profile '%s' not found in config file." % profile
+            get_logger().error(message)
+            raise ConfigValidationError(message)
         self.profile = profile
         profile_config = self.config[self.profile]
 
@@ -54,14 +59,14 @@ class DatasetSplitter:
             random_state = profile_config.get("random_state", 42)
 
             if not feature_columns or not isinstance(feature_columns, list):
-                raise ConfigValidationError(
-                    f"Invalid feature_columns list in profile '{self.profile}'."
-                )
+                message = "Invalid feature_columns list in profile '%s'." % self.profile
+                get_logger().error(message)
+                raise ConfigValidationError(message)
 
             if not isinstance(target_column, str) or not target_column:
-                raise ConfigValidationError(
-                    f"Invalid target_column in profile '{self.profile}'."
-                )
+                message = "Invalid target_column in profile '%s'." % self.profile
+                get_logger().error(message)
+                raise ConfigValidationError(message)
 
             return {
                 "feature_columns": feature_columns,
@@ -72,9 +77,12 @@ class DatasetSplitter:
             }
 
         except KeyError as e:
-            raise ConfigValidationError(
-                f"Missing required key in profile '{self.profile}': {str(e)}"
-            ) from e
+            message = "Missing required key in profile '%s': %s" % (
+                self.profile,
+                str(e),
+            )
+            get_logger().error(message)
+            raise ConfigValidationError(message) from e
 
     def split(self):
         """
@@ -86,6 +94,7 @@ class DatasetSplitter:
         Raises:
             DataSplittingError: If splitting fails or required columns are missing.
         """
+        get_logger().info("Splitting dataset")
         try:
             # Ensure all required columns exist in the dataset
             missing_features = [
@@ -94,15 +103,17 @@ class DatasetSplitter:
                 if col not in self.df.columns
             ]
             if missing_features:
-                raise DataSplittingError(
-                    f"Missing feature columns in dataset: {missing_features}"
-                )
+                message = "Missing feature columns in dataset: %s" % missing_features
+                get_logger().error(message)
+                raise DataSplittingError(message)
 
             if self.profile_config["target_column"] not in self.df.columns:
-                raise DataSplittingError(
-                    f"Target column '{self.profile_config['target_column']}' "
-                    "not found in dataset."
+                message = (
+                    "Target column '%s' not found in dataset."
+                    % self.profile_config["target_column"]
                 )
+                get_logger().error(message)
+                raise DataSplittingError(message)
 
             X = self.df[self.profile_config["feature_columns"]]
             y = self.df[self.profile_config["target_column"]]
@@ -112,10 +123,12 @@ class DatasetSplitter:
                 try:
                     y = y.astype(self.profile_config["target_type"])
                 except ValueError as exc:
-                    raise DataSplittingError(
-                        f"Could not convert target column '{self.profile_config['target_column']}' "
-                        f"to type {self.profile_config['target_type']}."
-                    ) from exc
+                    message = "Could not convert target column '%s' to type %s." % (
+                        self.profile_config["target_column"],
+                        self.profile_config["target_type"],
+                    )
+                    get_logger().error(message)
+                    raise DataSplittingError(message) from exc
 
             return train_test_split(
                 X,
@@ -125,6 +138,6 @@ class DatasetSplitter:
             )
 
         except Exception as e:
-            raise DataSplittingError(
-                f"Error during train-test splitting: {str(e)}"
-            ) from e
+            message = "Error during train-test splitting: %s" % str(e)
+            get_logger().error(message)
+            raise DataSplittingError(message) from e

@@ -17,6 +17,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from common.exceptions import ModelTrainingError, ConfigValidationError
 from models.model_trainer import ModelTrainer
+from logger_config import get_logger
 
 # =========================== FIXTURES =========================== #
 
@@ -57,21 +58,41 @@ def model_trainer_fixture(sample_training_config_fixture):
 
 def test_model_trainer_initialization(sample_training_config_fixture):
     """Test successful initialization of ModelTrainer."""
-    trainer = ModelTrainer(training_config=sample_training_config_fixture)
-    assert isinstance(trainer.training_config, dict)
-    assert len(trainer.models) == 2  # Expecting two models
+    test_name = "test_model_trainer_initialization"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        trainer = ModelTrainer(training_config=sample_training_config_fixture)
+        assert isinstance(trainer.training_config, dict)
+        assert len(trainer.models) == 2  # Expecting two models
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 def test_model_trainer_invalid_config():
     """Test invalid config type raises ConfigValidationError."""
-    with pytest.raises(ConfigValidationError, match="Invalid training configuration"):
-        ModelTrainer(training_config="invalid_config")  # Not a dict
+    test_name = "test_model_trainer_invalid_config"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        with pytest.raises(
+            ConfigValidationError, match="Invalid training configuration"
+        ):
+            ModelTrainer(training_config="invalid_config")  # Not a dict
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 def test_model_trainer_empty_config():
     """Test empty config raises ConfigValidationError."""
-    with pytest.raises(ConfigValidationError, match="No valid models found"):
-        ModelTrainer(training_config={})
+    test_name = "test_model_trainer_empty_config"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        with pytest.raises(ConfigValidationError, match="No valid models found"):
+            ModelTrainer(training_config={})
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 # =========================== TEST INPUT VALIDATION =========================== #
@@ -79,8 +100,16 @@ def test_model_trainer_empty_config():
 
 def test_validate_inputs_valid(model_trainer_fixture, sample_data_fixture):
     """Test that valid inputs pass validation."""
-    X_train, y_train = sample_data_fixture
-    model_trainer_fixture.validate_inputs(X_train, y_train)  # Should not raise an error
+    test_name = "test_validate_inputs_valid"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        X_train, y_train = sample_data_fixture
+        model_trainer_fixture.validate_inputs(
+            X_train, y_train
+        )  # Should not raise an error
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 @pytest.mark.parametrize(
@@ -94,8 +123,14 @@ def test_validate_inputs_valid(model_trainer_fixture, sample_data_fixture):
 )
 def test_validate_inputs_invalid(model_trainer_fixture, invalid_X, invalid_y):
     """Test that invalid inputs raise ModelTrainingError."""
-    with pytest.raises(ModelTrainingError):
-        model_trainer_fixture.validate_inputs(invalid_X, invalid_y)
+    test_name = "test_validate_inputs_invalid"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        with pytest.raises(ModelTrainingError):
+            model_trainer_fixture.validate_inputs(invalid_X, invalid_y)
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 # =========================== TEST MODEL TRAINING =========================== #
@@ -106,19 +141,29 @@ def test_grid_search_success(
     mock_grid_search, model_trainer_fixture, sample_data_fixture
 ):
     """Test grid search successfully finds the best model."""
-    X_train, y_train = sample_data_fixture
-    mock_best_model = MagicMock()
+    test_name = "test_grid_search_success"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        X_train, y_train = sample_data_fixture
+        mock_best_model = MagicMock()
 
-    mock_grid_search_instance = MagicMock()
-    mock_grid_search_instance.best_estimator_ = mock_best_model
-    mock_grid_search.return_value = mock_grid_search_instance
+        mock_grid_search_instance = MagicMock()
+        mock_grid_search_instance.best_estimator_ = mock_best_model
+        mock_grid_search.return_value = mock_grid_search_instance
 
-    best_model = model_trainer_fixture.perform_grid_search(
-        RandomForestClassifier(), {"n_estimators": [100]}, {"cv": 3}, X_train, y_train
-    )
+        best_model = model_trainer_fixture.perform_grid_search(
+            RandomForestClassifier(),
+            {"n_estimators": [100]},
+            {"cv": 3},
+            X_train,
+            y_train,
+        )
 
-    assert best_model == mock_best_model
-    mock_grid_search_instance.fit.assert_called_once()
+        assert best_model == mock_best_model
+        mock_grid_search_instance.fit.assert_called_once()
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 @patch("models.model_trainer.GridSearchCV")
@@ -126,17 +171,23 @@ def test_grid_search_failure(
     mock_grid_search, model_trainer_fixture, sample_data_fixture
 ):
     """Test that grid search failure raises ModelTrainingError."""
-    X_train, y_train = sample_data_fixture
-    mock_grid_search.side_effect = Exception("Grid search error")
+    test_name = "test_grid_search_failure"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        X_train, y_train = sample_data_fixture
+        mock_grid_search.side_effect = Exception("Grid search error")
 
-    with pytest.raises(ModelTrainingError, match="Error during grid search"):
-        model_trainer_fixture.perform_grid_search(
-            RandomForestClassifier(),
-            {"n_estimators": [100]},
-            {"cv": 3},
-            X_train,
-            y_train,
-        )
+        with pytest.raises(ModelTrainingError, match="Error during grid search"):
+            model_trainer_fixture.perform_grid_search(
+                RandomForestClassifier(),
+                {"n_estimators": [100]},
+                {"cv": 3},
+                X_train,
+                y_train,
+            )
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 @patch.object(RandomForestClassifier, "fit")
@@ -145,24 +196,36 @@ def test_train_models(
     mock_rf_fit, mock_lr_fit, model_trainer_fixture, sample_data_fixture
 ):
     """Test training all models successfully."""
-    X_train, y_train = sample_data_fixture
-    trained_models = model_trainer_fixture.train(X_train, y_train)
+    test_name = "test_train_models"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        X_train, y_train = sample_data_fixture
+        trained_models = model_trainer_fixture.train(X_train, y_train)
 
-    assert "RandomForestClassifier" in trained_models
-    assert "LogisticRegression" in trained_models
-    mock_rf_fit.assert_called_once()
-    mock_lr_fit.assert_called_once()
+        assert "RandomForestClassifier" in trained_models
+        assert "LogisticRegression" in trained_models
+        mock_rf_fit.assert_called_once()
+        mock_lr_fit.assert_called_once()
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 @patch.object(RandomForestClassifier, "fit", side_effect=Exception("RF Training Error"))
 def test_train_model_failure(_, model_trainer_fixture, sample_data_fixture):
     """Test that a training failure raises ModelTrainingError."""
-    X_train, y_train = sample_data_fixture
+    test_name = "test_train_model_failure"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        X_train, y_train = sample_data_fixture
 
-    with pytest.raises(
-        ModelTrainingError, match="Error training RandomForestClassifier"
-    ):
-        model_trainer_fixture.train(X_train, y_train)
+        with pytest.raises(
+            ModelTrainingError, match="Error training RandomForestClassifier"
+        ):
+            model_trainer_fixture.train(X_train, y_train)
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 # =========================== TEST MODEL SAVING =========================== #
@@ -170,25 +233,37 @@ def test_train_model_failure(_, model_trainer_fixture, sample_data_fixture):
 
 def test_save_models(tmp_path, model_trainer_fixture):
     """Test saving trained models."""
-    model_dir = tmp_path / "models"
-    trained_models = {
-        "RandomForestClassifier": RandomForestClassifier(),
-        "LogisticRegression": LogisticRegression(),
-    }
+    test_name = "test_save_models"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        model_dir = tmp_path / "models"
+        trained_models = {
+            "RandomForestClassifier": RandomForestClassifier(),
+            "LogisticRegression": LogisticRegression(),
+        }
 
-    model_trainer_fixture.save_models(trained_models, str(model_dir))
+        model_trainer_fixture.save_models(trained_models, str(model_dir))
 
-    assert os.path.exists(model_dir / "RandomForestClassifier.pkl")
-    assert os.path.exists(model_dir / "LogisticRegression.pkl")
+        assert os.path.exists(model_dir / "RandomForestClassifier.pkl")
+        assert os.path.exists(model_dir / "LogisticRegression.pkl")
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
 
 
 def test_save_models_failure(tmp_path, model_trainer_fixture):
     """Test failure during model saving."""
-    model_dir = tmp_path / "models"
-    trained_models = {"RandomForestClassifier": None}
+    test_name = "test_save_models_failure"
+    get_logger().info("**********  RUNNING %s  **********", test_name)
+    try:
+        model_dir = tmp_path / "models"
+        trained_models = {"RandomForestClassifier": None}
 
-    with pytest.raises(
-        ModelTrainingError,
-        match="Model 'RandomForestClassifier' should be an instance of RandomForestClassifier.",
-    ):
-        model_trainer_fixture.save_models(trained_models, str(model_dir))
+        with pytest.raises(
+            ModelTrainingError,
+            match="Model 'RandomForestClassifier' should be an instance of RandomForestClassifier.",
+        ):
+            model_trainer_fixture.save_models(trained_models, str(model_dir))
+    except AssertionError as e:
+        get_logger().error("Assertion failed in %s: %s", test_name, str(e))
+        raise
