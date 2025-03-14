@@ -141,12 +141,16 @@ pytest -v
 ---
 
 ## 📍 **Logging & Debugging**
-### **Check Logs**
+### ML pipeline logs
 ```bash
 cat logs/customer_churn.log
 ```
+### Unit tests detailed logs (including all method calls tracing)
+```bash
+cat logs/customer_churn_test.log
+```
 - Logs include **both info and error messages**
-- Stored in `customer_churn.log` after script execution.
+
 
 ---
 
