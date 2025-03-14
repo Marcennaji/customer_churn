@@ -142,10 +142,7 @@ class ModelTrainer:
             grid_search.fit(X_train, y_train)
             return grid_search.best_estimator_
         except Exception as e:
-            message = "Error during grid search for %s: %s" % (
-                type(model).__name__,
-                str(e),
-            )
+            message = f"Error during grid search for {type(model).__name__}: {str(e)}"
             get_logger().error(message)
             raise ModelTrainingError(message) from e
 
@@ -194,7 +191,7 @@ class ModelTrainer:
 
                 get_logger().info("Successfully trained %s.", model_name)
             except Exception as e:
-                message = "Error training %s: %s" % (model_name, str(e))
+                message = f"Error training {model_name}: {str(e)}"
                 get_logger().error(message)
                 raise ModelTrainingError(message) from e
 
@@ -217,16 +214,13 @@ class ModelTrainer:
 
         for model_name, model in trained_models.items():
             if model_name not in MODEL_MAPPING:
-                message = "Model name '%s' is not handled." % model_name
+                message = f"Model name '{model_name}' is not handled."
                 get_logger().error(message)
                 raise ModelTrainingError(message)
 
             expected_model_class = MODEL_MAPPING[model_name]
             if not isinstance(model, expected_model_class):
-                message = "Model '%s' should be an instance of %s." % (
-                    model_name,
-                    expected_model_class.__name__,
-                )
+                message = f"Model '{model_name}' should be an instance of {expected_model_class.__name__}."
                 get_logger().error(message)
                 raise ModelTrainingError(message)
 
@@ -235,6 +229,6 @@ class ModelTrainer:
                 joblib.dump(model, model_path)
                 get_logger().info("Saved %s to %s", model_name, model_path)
             except Exception as e:
-                message = "Error saving %s: %s" % (model_name, str(e))
+                message = f"Error saving {model_name}: {str(e)}"
                 get_logger().error(message)
                 raise ModelTrainingError(message) from e

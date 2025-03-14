@@ -1,5 +1,11 @@
-import pytest
+"""
+This module configures the logger for the test suite.
+Author: Marc Ennaji
+Date: 2025-03-01
+"""
+
 import os
+import pytest
 from logger_config import setup_logger
 
 

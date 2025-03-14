@@ -79,14 +79,14 @@ class ModelEvaluator:
         """Generates and stores a feature importance plot for a tree-based model."""
         get_logger().info("Plotting feature importance for model: %s", model_name)
         if model_name not in self.models:
-            message = "Model '%s' not found in evaluator." % model_name
+            message = f"Model '{model_name}' not found in evaluator."
             get_logger().error(message)
             raise ValueError(message)
 
         model = self.models[model_name]
 
         if not hasattr(model, "feature_importances_"):
-            message = "Model '%s' does not support feature importance." % model_name
+            message = f"Model '{model_name}' does not support feature importance."
             get_logger().error(message)
             raise ValueError(message)
 
@@ -95,14 +95,14 @@ class ModelEvaluator:
 
         fig, ax = plt.subplots(figsize=(20, 5))
         ax.set_title(
-            "Feature Importance - %s" % self.model_names.get(model_name, model_name)
+            f"Feature Importance - {self.model_names.get(model_name, model_name)}"
         )
         ax.set_ylabel("Importance")
         ax.bar(range(len(feature_names)), importances[indices])
         ax.set_xticks(range(len(feature_names)))
         ax.set_xticklabels([feature_names[i] for i in indices], rotation=90)
 
-        self.plots["feature_importance_%s" % model_name] = fig
+        self.plots[f"feature_importance_{model_name}"] = fig
 
     def save_plots(self, save_dir: str):
         """Saves all stored plots to the specified directory."""
@@ -110,7 +110,7 @@ class ModelEvaluator:
         os.makedirs(save_dir, exist_ok=True)
 
         for name, fig in self.plots.items():
-            file_path = os.path.join(save_dir, "%s.png" % name)
+            file_path = os.path.join(save_dir, f"{name}.png")
             fig.savefig(file_path, bbox_inches="tight", dpi=300)
             get_logger().info("Plot saved: %s", file_path)
 
@@ -126,7 +126,7 @@ class ModelEvaluator:
         os.makedirs(save_dir, exist_ok=True)
 
         for name, model in self.models.items():
-            model_path = os.path.join(save_dir, "%s.pkl" % name)
+            model_path = os.path.join(save_dir, f"{name}.pkl")
             joblib.dump(model, model_path)
             get_logger().info("Model saved: %s", model_path)
 
@@ -134,7 +134,7 @@ class ModelEvaluator:
         """Loads models from disk."""
         get_logger().info("Loading models from directory: %s", load_dir)
         for name in self.models.keys():
-            model_path = os.path.join(load_dir, "%s.pkl" % name)
+            model_path = os.path.join(load_dir, f"{name}.pkl")
             if os.path.exists(model_path):
                 self.models[name] = joblib.load(model_path)
                 get_logger().info("Model loaded: %s", model_path)

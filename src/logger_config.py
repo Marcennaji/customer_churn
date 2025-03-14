@@ -1,3 +1,20 @@
+"""
+This module configures and provides a logger for the Customer Churn project.
+
+The logger is configured with both file and stream handlers to log messages to a file and the console.
+The default log file is located in the `../logs/customer_churn.log` relative to this module's directory.
+
+Functions:
+    setup_logger(log_file=None): Configures the logger with file and stream handlers.
+    get_logger(): Returns the configured logger, initializing it if necessary.
+
+Constants:
+    DEFAULT_LOG_FILE (str): The default path to the log file.
+
+Exceptions:
+    LoggerConfigurationError: Raised when there is an error configuring the logger.
+"""
+
 import logging
 import os
 from common.exceptions import LoggerConfigurationError
@@ -37,7 +54,7 @@ def setup_logger(log_file=None):
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
 
-        logger.info(f"Logger initialized. Writing logs to: {log_file}")
+        logger.info("Logger initialized. Writing logs to: %s", log_file)
 
         _logger = logger  # Store the configured logger
         return _logger

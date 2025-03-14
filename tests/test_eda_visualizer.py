@@ -40,7 +40,7 @@ def eda_visualizer_fixture(sample_df_fixture):
 def test_initialization(sample_df_fixture):
     """Test the initialization of EDAVisualizer."""
     test_name = "test_initialization"
-    get_logger().info("Running %s", test_name)
+    get_logger().info("**********  RUNNING %s  **********", test_name)
     try:
         visualizer = EDAVisualizer(sample_df_fixture)
         assert visualizer.df.equals(sample_df_fixture)
@@ -53,7 +53,7 @@ def test_initialization(sample_df_fixture):
 def test_plot_histogram(eda_visualizer_fixture):
     """Test the plot_histogram method."""
     test_name = "test_plot_histogram"
-    get_logger().info("Running %s", test_name)
+    get_logger().info("**********  RUNNING %s  **********", test_name)
     try:
         eda_visualizer_fixture.plot_histogram("numeric_col")
         assert "histogram_numeric_col" in eda_visualizer_fixture.plots
@@ -68,7 +68,7 @@ def test_plot_histogram(eda_visualizer_fixture):
 def test_plot_bar_chart(eda_visualizer_fixture):
     """Test the plot_bar_chart method."""
     test_name = "test_plot_bar_chart"
-    get_logger().info("Running %s", test_name)
+    get_logger().info("**********  RUNNING %s  **********", test_name)
     try:
         eda_visualizer_fixture.plot_bar_chart("categorical_col")
         assert "bar_chart_categorical_col" in eda_visualizer_fixture.plots
@@ -83,7 +83,7 @@ def test_plot_bar_chart(eda_visualizer_fixture):
 def test_plot_kde(eda_visualizer_fixture):
     """Test the plot_kde method."""
     test_name = "test_plot_kde"
-    get_logger().info("Running %s", test_name)
+    get_logger().info("**********  RUNNING %s  **********", test_name)
     try:
         eda_visualizer_fixture.plot_kde("numeric_col")
         assert "kde_numeric_col" in eda_visualizer_fixture.plots
@@ -96,7 +96,7 @@ def test_plot_kde(eda_visualizer_fixture):
 def test_plot_correlation_heatmap(eda_visualizer_fixture):
     """Test the plot_correlation_heatmap method."""
     test_name = "test_plot_correlation_heatmap"
-    get_logger().info("Running %s", test_name)
+    get_logger().info("**********  RUNNING %s  **********", test_name)
     try:
         eda_visualizer_fixture.plot_correlation_heatmap()
         assert "correlation_heatmap" in eda_visualizer_fixture.plots
@@ -113,7 +113,7 @@ def test_plot_correlation_heatmap(eda_visualizer_fixture):
 def test_save_plots(mock_savefig, mock_makedirs, eda_visualizer_fixture):
     """Test the save_plots method."""
     test_name = "test_save_plots"
-    get_logger().info("Running %s", test_name)
+    get_logger().info("**********  RUNNING %s  **********", test_name)
     try:
         eda_visualizer_fixture.plot_histogram("numeric_col")
         eda_visualizer_fixture.plot_bar_chart("categorical_col")
